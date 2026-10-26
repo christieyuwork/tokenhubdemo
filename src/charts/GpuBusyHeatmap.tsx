@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { ChartScroll } from './ChartScroll';
 
 /**
  * Categorical busy/idle heatmap for a typical 24-hour day.
@@ -27,8 +28,12 @@ interface HourSegment {
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, '0'));
 const LABEL_COL = '100px';
+/** Floor per hour so 24 ticks stay readable; ChartScroll handles overflow. */
+const HOUR_MIN = 'var(--space-300)';
 /** Shared template so hour ticks and cells share one set of column lines. */
-const COLUMNS = `${LABEL_COL} repeat(24, minmax(0, 1fr))`;
+const COLUMNS = `${LABEL_COL} repeat(24, minmax(${HOUR_MIN}, 1fr))`;
+/** Label + 24 hour floors + 23×1px gutters. */
+const GRID_MIN_WIDTH = `calc(${LABEL_COL} + (24 * ${HOUR_MIN}) + 23px)`;
 
 const LEVEL_COLOR: Record<GpuBusyLevel, string> = {
   busy: 'var(--color-error-error)',
@@ -81,7 +86,7 @@ const Grid = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  overflow: hidden;
+  min-width: ${GRID_MIN_WIDTH};
 `;
 
 const HourHeader = styled.div`
@@ -94,6 +99,7 @@ const HourHeader = styled.div`
   column-gap: 1px;
   align-items: stretch;
   width: 100%;
+  min-width: ${GRID_MIN_WIDTH};
   height: var(--space-300);
   border-bottom: 1px solid var(--color-stroke-border);
 `;
@@ -121,6 +127,7 @@ const Row = styled.div`
   column-gap: 1px;
   align-items: stretch;
   width: 100%;
+  min-width: ${GRID_MIN_WIDTH};
   height: 18.3px;
 `;
 
@@ -176,34 +183,36 @@ const Swatch = styled.span<{ $level: Exclude<GpuBusyLevel, 'unallocated'> }>`
 export function GpuBusyHeatmap({ rows, ariaLabel }: GpuBusyHeatmapProps) {
   return (
     <Frame role="img" aria-label={ariaLabel}>
-      <Grid>
-        <HourHeader>
-          <LabelSpacer aria-hidden />
-          {HOURS.map((hour) => (
-            <HourLabel key={hour}>{hour}</HourLabel>
+      <ChartScroll>
+        <Grid>
+          <HourHeader>
+            <LabelSpacer aria-hidden />
+            {HOURS.map((hour) => (
+              <HourLabel key={hour}>{hour}</HourLabel>
+            ))}
+          </HourHeader>
+          {rows.map((row) => (
+            <Row key={row.id}>
+              <RowLabel>{row.label}</RowLabel>
+              {segmentsFor(row.hours).map((segment) => {
+                const endHour = segment.start + segment.span - 1;
+                const range =
+                  segment.span === 1
+                    ? `${HOURS[segment.start]}:00`
+                    : `${HOURS[segment.start]}:00–${HOURS[endHour]}:00`;
+                return (
+                  <Cell
+                    key={`${row.id}-${segment.start}`}
+                    $level={segment.level}
+                    $span={segment.span}
+                    title={`${row.label}, ${range} — ${levelTitle(segment.level)}`}
+                  />
+                );
+              })}
+            </Row>
           ))}
-        </HourHeader>
-        {rows.map((row) => (
-          <Row key={row.id}>
-            <RowLabel>{row.label}</RowLabel>
-            {segmentsFor(row.hours).map((segment) => {
-              const endHour = segment.start + segment.span - 1;
-              const range =
-                segment.span === 1
-                  ? `${HOURS[segment.start]}:00`
-                  : `${HOURS[segment.start]}:00–${HOURS[endHour]}:00`;
-              return (
-                <Cell
-                  key={`${row.id}-${segment.start}`}
-                  $level={segment.level}
-                  $span={segment.span}
-                  title={`${row.label}, ${range} — ${levelTitle(segment.level)}`}
-                />
-              );
-            })}
-          </Row>
-        ))}
-      </Grid>
+        </Grid>
+      </ChartScroll>
       <Legend aria-hidden>
         {(Object.keys(LEVEL_LABEL) as Array<keyof typeof LEVEL_LABEL>).map((level) => (
           <LegendItem key={level}>

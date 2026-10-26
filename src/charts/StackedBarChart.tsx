@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
 import styled from 'styled-components';
+import { ChartScroll } from './ChartScroll';
 
 const FONT = "'Rookery New','Rookery','Noto Sans',system-ui,sans-serif";
 
@@ -45,10 +46,17 @@ export interface StackedBarChartProps {
   ariaLabel: string;
 }
 
-const Frame = styled.div<{ $height: number }>`
+const Frame = styled.div<{ $height: number; $minWidth: string }>`
   width: 100%;
+  /* Floors keep bars readable; ChartScroll shows X scroll when the panel is narrower. */
+  min-width: ${({ $minWidth }) => $minWidth};
   height: ${({ $height }) => $height}px;
 `;
+
+/** ~64px per category + y-axis chrome so labels and bars do not crush. */
+function chartMinWidth(categoryCount: number) {
+  return `calc(${categoryCount} * var(--space-900) + var(--space-1000))`;
+}
 
 function formatTotal(value: number) {
   return value.toFixed(1);
@@ -275,5 +283,15 @@ export function StackedBarChart({
     showYAxis,
   ]);
 
-  return <Frame ref={frameRef} $height={height} role="img" aria-label={ariaLabel} />;
+  return (
+    <ChartScroll>
+      <Frame
+        ref={frameRef}
+        $height={height}
+        $minWidth={chartMinWidth(categories.length)}
+        role="img"
+        aria-label={ariaLabel}
+      />
+    </ChartScroll>
+  );
 }

@@ -38,10 +38,27 @@ const PageScroll = styled(Scrollbar)`
 
 /*
   Page chrome from the report template (Figma Alerts / Cost-by-* frames):
-  switcher row pad 24×32; content grid pad 24 / 36 / 24 / 48; section gap 16.
-  This is the only page-level padding for report routes — subpages must not
-  add competing horizontal padding.
+  side gutters 48 left / 36 right live on Page; switcher and content keep
+  vertical pad only (24); section gap 16. Subpages must not add competing
+  horizontal padding.
 */
+const Page = styled.div`
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  /*
+    cake& Scrollbar sizes a display:table wrapper to content.
+    width:0 + min-width:100% fills the scrollport without letting
+    wide filters/tables inflate the page past the frame.
+  */
+  width: 0;
+  min-width: 100%;
+  max-width: 100%;
+  /* 48 — nav → content; 36 — content → scrollbar */
+  padding-left: var(--space-800);
+  padding-right: var(--space-650);
+`;
+
 const SwitcherRow = styled.div`
   box-sizing: border-box;
   display: flex;
@@ -49,7 +66,7 @@ const SwitcherRow = styled.div`
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  padding: var(--space-500) var(--space-600) 0;
+  padding: var(--space-500) 0 0;
 `;
 
 const Content = styled.div`
@@ -60,7 +77,10 @@ const Content = styled.div`
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  padding: var(--space-500) var(--space-650) var(--space-500) var(--space-800);
+  padding: var(--space-500) 0;
+  /* Split-screen / sidebar: MetricGrid queries this, not the viewport. */
+  container-type: inline-size;
+  container-name: report-content;
 
   /*
     Flex items default to min-width:auto and will blow the column open when a
@@ -85,6 +105,9 @@ const HeaderCard = styled(Card)`
   max-width: 100%;
   min-width: 0;
   background-image: linear-gradient(8deg, rgb(21, 47, 197) 14%, rgb(160, 120, 255) 87%);
+  /* Split-screen: filter stack queries the hero card width, not the viewport. */
+  container-type: inline-size;
+  container-name: report-header;
 
   label {
     color: var(--color-text-icon-on-primary);
@@ -100,29 +123,39 @@ const HEADER_BANNER_HEIGHT = `calc(
 const HeaderInner = styled.div`
   box-sizing: border-box;
   display: flex;
+  width: 100%;
+  /* Filters stay on the bottom edge when the subtitle wraps to a second line. */
   align-items: flex-end;
-  justify-content: space-between;
+  /*
+    flex-start + Filters margin-left:auto pins the cluster to the padded right
+    edge. space-between left a trailing gap after Filters (worse after the
+    260px max-width made the cluster narrower).
+  */
+  justify-content: flex-start;
   gap: var(--space-500);
   padding: var(--space-500);
   min-width: 0;
   /*
-    Fixed banner height (Figma &Card = 115). Same on every ReportHeader page so
-    MetricGrid does not jump; overflow clips if a filter tries to grow taller.
+    Default banner matches Figma (~115). Grows when the subtitle wraps so the
+    second line is not clipped; MetricGrid only shifts on pages that wrap.
   */
-  height: ${HEADER_BANNER_HEIGHT};
-  overflow: hidden;
+  min-height: ${HEADER_BANNER_HEIGHT};
+
+  @container report-header (max-width: 720px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 const Titles = styled.div`
   display: flex;
   /*
-    Share the header with filters. Keep a token min so the title does not
-    collapse to a few glyphs when a long Dropdown selection is present.
+    Absorb free space so the filter cluster stays pinned to the right and the
+    subtitle has a real wrap width.
   */
   flex: 1 1 auto;
   flex-direction: column;
   gap: var(--space-100);
-  /* Prefer a readable title track; never force the banner wider than Content. */
   min-width: 0;
   max-width: 100%;
 `;
@@ -144,17 +177,30 @@ const Description = styled.p`
   font-size: var(--type-size-body);
   font-weight: var(--font-weight-regular);
   line-height: 1.35;
+  /* Wrap instead of truncating; clamp at two lines so the banner cannot blow open. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 `;
+
+/** ~260px — longest closed filter width before a long option blows the row. */
+const FILTER_MAX_WIDTH = `calc(var(--space-1000) * 3 + var(--space-400))`;
 
 const Filters = styled.div`
   display: flex;
   flex: 0 1 auto;
   flex-wrap: nowrap;
   align-items: flex-end;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  /* Push the cluster to the hero’s padded right edge; leftover sits before it. */
+  margin-left: auto;
+  /* Shrink-wrap to capped children so no empty track sits after Rule. */
+  width: max-content;
+  /*
+    One uniform gap between every adjacent filter (Date, Grain, Provider, …).
+    Children must not grow or leftover width opens uneven tracks between them.
+  */
   gap: var(--space-200);
   min-width: 0;
   max-width: 100%;
@@ -162,38 +208,32 @@ const Filters = styled.div`
   height: calc((var(--type-size-body) * 1.35) + var(--space-100) + var(--space-700));
 
   /*
-    Date range keeps a stable width (frame ~242px; tokens ~244).
-    It does not share the leftover shrink with the Dropdowns.
+    Date + Dropdowns size to their visible control, capped so a long option
+    label (e.g. Intelligent routing Rule) cannot blow past ~260px
+    (space-1000 × 3 + space-400) or the filter row width.
   */
-  & > :first-child {
-    flex: 0 0 auto;
-    width: calc(var(--space-1000) * 3 + var(--space-050));
-    max-width: 100%;
-  }
-
-  /*
-    Each Dropdown sizes to its longest option (ReportFilterDropdown sizer).
-    Under a narrow header the field shrinks and the closed value ellipsizes.
-  */
-  & > :not(:first-child) {
-    flex: 0 1 max-content;
-    width: max-content;
+  & > * {
+    flex: 0 1 auto;
+    width: min(max-content, ${FILTER_MAX_WIDTH});
     min-width: 0;
-    max-width: 100%;
+    max-width: min(100%, ${FILTER_MAX_WIDTH});
   }
 
   /*
     Closed trigger only. Height is the cake& control (40px / space-700) so the
-    selected value cannot wrap or spill out of the field.
+    selected value cannot wrap or spill out of the field. Left-align the value
+    so short labels like "All" do not look centered in a wide sizer field.
   */
   & [role='combobox'] {
     box-sizing: border-box;
     align-items: center;
+    justify-content: flex-start;
     width: 100%;
     height: var(--space-700);
     min-width: 0;
     max-width: 100%;
     overflow: hidden;
+    text-align: left;
   }
 
   & [role='combobox'] > span:first-child {
@@ -202,10 +242,33 @@ const Filters = styled.div`
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-align: left;
   }
 
   & [role='combobox'] > span:last-child {
     flex: 0 0 auto;
+  }
+
+  /* Title above; filters wrap two-up under the titles. */
+  @container report-header (max-width: 720px) {
+    margin-left: 0;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    flex-wrap: wrap;
+
+    & > * {
+      flex: 1 1 calc((100% - var(--space-200)) / 2);
+      width: auto;
+      max-width: 100%;
+    }
+  }
+
+  /* One filter per line. */
+  @container report-header (max-width: 480px) {
+    & > * {
+      flex: 1 1 100%;
+    }
   }
 `;
 
@@ -220,14 +283,16 @@ const Filters = styled.div`
 const FilterDropdownField = styled.div`
   display: inline-grid;
   /*
-    Prefer the sizer's max-content width, but allow the track to shrink under a
-    tight header so the closed trigger ellipsizes instead of overflowing.
+    Prefer the sizer's max-content width, capped at ~260px. Use min() on width
+    (not only max-width) so the flex parent's intrinsic size matches the capped
+    used width — otherwise Filters stays ~uncapped wide and leaves empty space
+    after a long Rule label.
   */
   grid-template-columns: minmax(0, max-content);
   justify-items: stretch;
   box-sizing: border-box;
-  width: max-content;
-  max-width: 100%;
+  width: min(max-content, ${FILTER_MAX_WIDTH});
+  max-width: min(100%, ${FILTER_MAX_WIDTH});
   min-width: 0;
   overflow: hidden;
 
@@ -237,6 +302,13 @@ const FilterDropdownField = styled.div`
     visibility: hidden;
     pointer-events: none;
     white-space: nowrap;
+    /*
+      Cap the sizer so max-content matches the field max-width. Without this,
+      Filters' intrinsic width stays at the uncapped label (~383px) while the
+      trigger renders at 260px — leaving empty space after Rule.
+    */
+    max-width: ${FILTER_MAX_WIDTH};
+    overflow: hidden;
     /*
       Mirror cake& trigger + Select.Value chrome:
       trigger pad (space-200) + Value pad (space-100) on the start;
@@ -311,11 +383,11 @@ export const MetricGrid = styled.div`
     max-width: 100%;
   }
 
-  @media (max-width: 900px) {
+  @container report-content (max-width: 900px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: 480px) {
+  @container report-content (max-width: 480px) {
     grid-template-columns: minmax(0, 1fr);
   }
 `;
@@ -396,17 +468,19 @@ export function ReportPage({
 }: ReportPageProps) {
   return (
     <PageScroll>
-      <SwitcherRow>
-        <ContentSwitcher
-          aria-label={switcherLabel}
-          size="md"
-          intent="primary"
-          options={sections}
-          value={section}
-          onValueChange={onSectionChange}
-        />
-      </SwitcherRow>
-      {children ? <Content>{children}</Content> : null}
+      <Page>
+        <SwitcherRow>
+          <ContentSwitcher
+            aria-label={switcherLabel}
+            size="md"
+            intent="primary"
+            options={sections}
+            value={section}
+            onValueChange={onSectionChange}
+          />
+        </SwitcherRow>
+        {children ? <Content>{children}</Content> : null}
+      </Page>
     </PageScroll>
   );
 }
@@ -474,11 +548,10 @@ const SectionHeader = styled.div`
   min-width: 0;
   max-width: 100%;
 
-  /* Trailing actions (search, etc.) shrink instead of widening the panel. */
+  /* Trailing actions keep their own width (e.g. 320px search); only shrink if needed. */
   & > :last-child:not(:only-child) {
     flex: 0 1 auto;
     min-width: 0;
-    max-width: 100%;
   }
 `;
 
@@ -510,20 +583,21 @@ export function ReportPanel({ title, note, actions, children }: ReportPanelProps
  * and body stay aligned. Never use `auto` / `max-content` floors — each cake&
  * row is its own grid, and content-sized tracks misalign across rows.
  *
- * Floors are `0` so columns shrink on narrow viewports; `fr` weights keep
- * relative proportions. Text wraps inside cells instead of widening the page.
+ * Token floors keep columns readable; when the panel is narrower than the sum
+ * of floors, TableScroll shows a horizontal scrollbar instead of crushing text.
+ * `fr` weights keep relative proportions on wide panels.
  */
 export const reportCol = {
   /** GPU, Server, Status, Time — short labels */
-  compact: 'minmax(0, 1fr)',
+  compact: 'minmax(var(--space-1000), 1fr)',
   /** Utilization, Idle hours, $, counts — numeric / medium */
-  metric: 'minmax(0, 1.25fr)',
+  metric: 'minmax(calc(var(--space-1000) + var(--space-200)), 1.25fr)',
   /** Rule, Scope, Notified, Provider, Why, model name */
-  wide: 'minmax(0, 2.5fr)',
+  wide: 'minmax(calc(var(--space-1000) * 2), 2.5fr)',
   /** Match text, deployment + badge cluster, long prompts */
-  widePlus: 'minmax(0, 3.5fr)',
-  /** Expand / row icon. Caps growth; can shrink under extreme squeeze. */
-  icon: 'minmax(0, var(--space-900))',
+  widePlus: 'minmax(calc(var(--space-1000) * 3), 3.5fr)',
+  /** Expand / row icon. */
+  icon: 'minmax(var(--space-700), var(--space-900))',
 } as const;
 
 /** Text-heavy columns grow into leftover width (fallback when $cols is omitted). */
@@ -585,7 +659,7 @@ export const CellSecondary = styled.span`
   white-space: normal;
 `;
 
-type ReportTableProps = {
+type ReportTableStyledProps = {
   /**
    * Shared grid-template-columns for the data cells (not rails). Build from
    * `reportCol` pieces. Same tracks on every row → header/body aligned and
@@ -595,26 +669,40 @@ type ReportTableProps = {
 };
 
 /**
- * Report table. Pass `$cols` from `reportCol` so every row shares the same
- * tracks. Text wraps inside a column instead of ellipsis; row height may grow.
- * WideDataCell / CompactDataCell (and `$wide`) only matter when `$cols` is omitted.
+ * Scrollport for ReportTable. PageScroll keeps overflow-x:hidden on the page;
+ * wide column floors scroll here inside the panel instead.
  */
-export const ReportTable = styled(Table)<ReportTableProps>`
+const TableScroll = styled.div`
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  overflow-x: auto;
+`;
+
+/**
+ * Inner cake& Table. Pass `$cols` from `reportCol` so every row shares the same
+ * tracks. Text wraps inside a readable floor; when floors exceed the panel,
+ * TableScroll shows a horizontal scrollbar.
+ * WideDataCell / CompactDataCell (and `$wide`) only matter when `$cols` is omitted.
+ */
+const StyledReportTable = styled(Table)<ReportTableStyledProps>`
+  box-sizing: border-box;
+  width: 100%;
+  /* Grow with column floors so TableScroll can overflow; fill when roomy. */
+  min-width: min-content;
 
   /*
     cake& DataRow/HeaderRow reserve 48px rails for checkbox + row action.
-    Collapse unused rails so data columns fill the panel.
+    Collapse unused rails so data columns fill the panel. min-content on the
+    middle track lets reportCol floors drive horizontal overflow.
   */
   &:not(:has([role='checkbox'])) [role='row'] {
-    grid-template-columns: 0 minmax(0, 1fr) 0 !important;
+    grid-template-columns: 0 minmax(min-content, 1fr) 0 !important;
   }
 
   &:has([role='checkbox']) [role='row'] {
-    grid-template-columns: var(--space-800) minmax(0, 1fr) 0 !important;
+    grid-template-columns: var(--space-800) minmax(min-content, 1fr) 0 !important;
   }
 
   &:not(:has([role='checkbox'])) [role='row'] > [role='gridcell']:first-child,
@@ -637,7 +725,7 @@ export const ReportTable = styled(Table)<ReportTableProps>`
   [role='row'] > div:nth-child(2) {
     align-items: stretch;
     width: 100%;
-    min-width: 0;
+    min-width: min-content;
     overflow: visible;
   }
 
@@ -695,6 +783,20 @@ export const ReportTable = styled(Table)<ReportTableProps>`
     justify-content: flex-start;
   }
 `;
+
+type ReportTableProps = ComponentProps<typeof StyledReportTable>;
+
+/**
+ * Report table with an internal horizontal scrollport. Same `$cols` / children
+ * API as before — pages do not need to wrap it themselves.
+ */
+export function ReportTable(props: ReportTableProps) {
+  return (
+    <TableScroll>
+      <StyledReportTable {...props} />
+    </TableScroll>
+  );
+}
 
 /** Short columns — small $cols track. Does not grow when $cols is omitted. */
 export const CompactDataCell = styled(DataCell)`

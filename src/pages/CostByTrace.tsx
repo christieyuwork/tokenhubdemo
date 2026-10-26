@@ -260,11 +260,12 @@ const TRACE_ROWS: TraceRow[] = [
   },
 ];
 
+/** Figma Trace ID search: &text.input at 320px (space-1000 × 4). */
 const SearchField = styled.div`
   box-sizing: border-box;
-  flex: 0 1 auto;
-  width: 100%;
-  max-width: calc(var(--space-1000) * 4);
+  flex: 0 0 auto;
+  width: calc(var(--space-1000) * 4);
+  max-width: 100%;
   min-width: 0;
 `;
 

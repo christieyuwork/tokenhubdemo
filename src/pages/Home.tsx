@@ -482,6 +482,7 @@ const PredictCard = styled(Card)`
   @container home (max-width: 920px) {
     grid-column: 1 / -1;
     grid-row: auto;
+    min-height: 250px;
   }
 `;
 
@@ -495,6 +496,7 @@ const PredictInner = styled.div`
   flex: 1 1 auto;
   gap: var(--space-500);
   align-items: center;
+  height: 100%;
   min-height: 0;
   padding: var(--space-500);
 `;
@@ -541,9 +543,13 @@ const PredictMediaFrame = styled.div`
   /*
     Figma: square media, flex sibling to the copy column. Height follows
     the padded card so top/right/bottom insets stay 24px like the left.
+    Width comes from aspect-ratio — never from the image intrinsic size.
   */
   flex: 0 0 auto;
   align-self: stretch;
+  width: auto;
+  min-width: 0;
+  max-width: 50%;
   height: auto;
   max-height: 100%;
   aspect-ratio: 1 / 1;
@@ -552,6 +558,8 @@ const PredictMediaFrame = styled.div`
 `;
 
 const PredictMedia = styled.img`
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;

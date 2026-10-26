@@ -234,7 +234,11 @@ const MetricsBand = styled.div`
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  padding: var(--space-600) 0;
+  /*
+    Match Cost category landing: generous bottom inset so KPI card shadows
+    clear the OverviewCard clip edge.
+  */
+  padding: var(--space-500) 0 var(--space-700);
 `;
 
 const MetricsScroller = styled.div`
@@ -242,7 +246,10 @@ const MetricsScroller = styled.div`
   gap: var(--space-300);
   width: 100%;
   min-width: 0;
-  padding: 0 var(--space-500);
+  /*
+    Vertical padding keeps elevation-2 inside the scrollport (same as Cost).
+  */
+  padding: var(--space-300) var(--space-500) var(--space-400);
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: thin;

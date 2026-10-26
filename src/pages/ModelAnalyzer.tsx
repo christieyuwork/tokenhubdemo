@@ -228,7 +228,7 @@ export function ModelAnalyzer() {
     <>
       <ReportHeader
         title="Model analyzer"
-        description="Model prices side by side, and what a switch would cost"
+        description="Model prices side by side, and what a switch would cost."
         filters={
           <>
             <DateInput

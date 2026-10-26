@@ -279,7 +279,7 @@ export function CostByModel() {
     <>
       <ReportHeader
         title="Cost by model"
-        description="Tokens and cost for each model"
+        description="Tokens and cost for each model."
         filters={
           <>
             <DateInput

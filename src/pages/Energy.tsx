@@ -202,7 +202,7 @@ export function Energy() {
     <>
       <ReportHeader
         title="Energy"
-        description="Power drawn by each GPU"
+        description="Power drawn by each GPU."
         filters={
           <>
             <DateInput

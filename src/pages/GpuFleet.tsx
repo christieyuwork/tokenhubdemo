@@ -251,7 +251,7 @@ export function GpuFleet() {
     <>
       <ReportHeader
         title="GPU fleet"
-        description="Each GPU's busy and idle time, and which model deployment runs on it"
+        description="Each GPU's busy and idle time, and which model deployment runs on it."
         filters={
           <>
             <DateInput

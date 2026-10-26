@@ -199,7 +199,7 @@ export function Caching() {
     <>
       <ReportHeader
         title="Caching"
-        description="Repeated prompt text that our own models reuse instead of processing again"
+        description="Repeated prompt text that our own models reuse instead of processing again."
         filters={
           <>
             <DateInput

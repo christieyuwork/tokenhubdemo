@@ -254,7 +254,7 @@ export function InvoiceReconciliation() {
     <>
       <ReportHeader
         title="Invoice reconciliation"
-        description="Our calculated cost against each provider's invoice"
+        description="Our calculated cost against each provider's invoice."
         filters={
           <>
             <DateInput

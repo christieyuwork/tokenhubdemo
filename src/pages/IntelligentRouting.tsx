@@ -173,7 +173,7 @@ export function IntelligentRouting() {
     <>
       <ReportHeader
         title="Intelligent routing"
-        description="Which requests went to which model, and the rules that decided it"
+        description="Which requests went to which model, and the rules that decided it."
         filters={
           <>
             <DateInput

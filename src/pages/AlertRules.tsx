@@ -704,7 +704,7 @@ export function AlertRules() {
     <>
       <ReportHeader
         title="Alert rules"
-        description="Thresholds, tolerances, and who gets notified when they fire"
+        description="Thresholds, tolerances, and who gets notified when they fire."
       />
       <MetricGrid>
         <MetricCard label="Active rules" value={String(activeCount)} caption="Enabled now" />

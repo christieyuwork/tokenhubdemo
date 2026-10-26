@@ -240,7 +240,7 @@ export function Alerts() {
     <>
       <ReportHeader
         title="Alerts"
-        description="Every threshold alert that fired"
+        description="Every threshold alert that fired."
         filters={
           <>
             <DateInput

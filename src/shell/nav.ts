@@ -1,10 +1,10 @@
 import alerts from '../assets/nav-alerts.svg';
 import administration from '../assets/nav-administration.svg';
 import cost from '../assets/nav-cost.svg';
-import dashboardFill from '../assets/nav-dashboard-fill.png';
-import dashboardOutline from '../assets/nav-dashboard-outline.png';
-import homeFill from '../assets/nav-home-fill.png';
-import homeOutline from '../assets/nav-home-outline.png';
+import dashboardFill from '../assets/nav-dashboard-fill.svg';
+import dashboardOutline from '../assets/nav-dashboard-outline.svg';
+import homeFill from '../assets/nav-home-fill.svg';
+import homeOutline from '../assets/nav-home-outline.svg';
 import operations from '../assets/nav-operations.svg';
 import optimization from '../assets/nav-optimization.svg';
 

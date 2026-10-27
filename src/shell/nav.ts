@@ -3,8 +3,8 @@ import administration from '../assets/nav-administration.svg';
 import cost from '../assets/nav-cost.svg';
 import dashboardFill from '../assets/nav-dashboard-fill.svg';
 import dashboardOutline from '../assets/nav-dashboard-outline.svg';
-import homeFill from '../assets/nav-home-fill.svg';
-import homeOutline from '../assets/nav-home-outline.svg';
+import exploreFill from '../assets/nav-explore-fill.svg';
+import exploreOutline from '../assets/nav-explore-outline.svg';
 import operations from '../assets/nav-operations.svg';
 import optimization from '../assets/nav-optimization.svg';
 
@@ -24,13 +24,19 @@ export interface NavGroup extends NavLink {
 }
 
 export const topLinks: NavLink[] = [
-  { value: 'home', label: 'Home', icon: homeOutline, iconFill: homeFill, iconOutline: homeOutline },
   {
     value: 'dashboard',
     label: 'Dashboard',
     icon: dashboardOutline,
     iconFill: dashboardFill,
     iconOutline: dashboardOutline,
+  },
+  {
+    value: 'home',
+    label: 'Explore',
+    icon: exploreOutline,
+    iconFill: exploreFill,
+    iconOutline: exploreOutline,
   },
 ];
 

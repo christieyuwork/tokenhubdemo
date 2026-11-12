@@ -861,7 +861,7 @@ export function AlertRules() {
         modalIconSlot={<Bell />}
         footer={
           <ModalFooter
-            checkbox={null}
+            checkbox={false}
             secondaryActionLabel="Cancel"
             onSecondaryAction={() => closeCreate(false)}
             primaryActionLabel="Create rule"
@@ -894,7 +894,7 @@ export function AlertRules() {
         modalIcon="error"
         footer={
           <ModalFooter
-            checkbox={null}
+            checkbox={false}
             secondaryActionLabel="Cancel"
             onSecondaryAction={() => setDeleteId(null)}
             primaryActionLabel="Delete"

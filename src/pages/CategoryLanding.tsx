@@ -271,7 +271,7 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
     ],
     spotlight: {
       title: 'Orchestrate for savings',
-      body: 'TokenHub picks the right combination of model, provider, and infrastructure for every workload.',
+      body: 'TokenOps Center picks the right combination of model, provider, and infrastructure for every workload.',
       media: optimizationHeroImg,
       ctaLabel: 'Routing rules',
       ctaTarget: 'routing-rules',
@@ -354,7 +354,7 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
     ],
     spotlight: {
       title: 'Operate with confidence',
-      body: 'Monitor AI systems, infrastructure, and workloads without leaving TokenHub.',
+      body: 'Monitor AI systems, infrastructure, and workloads without leaving TokenOps Center.',
       media: operationsHeroImg,
       ctaLabel: 'Model registry',
       ctaTarget: 'model-registry',
@@ -425,7 +425,7 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
   administration: {
     id: 'administration',
     title: 'Administration',
-    subtitle: 'Connect providers, manage keys, and enforce quotas across TokenHub.',
+    subtitle: 'Connect providers, manage keys, and enforce quotas across TokenOps Center.',
     heroImage: administrationHeroImg,
     primaryCta: { label: 'Connections', target: 'connections' },
     metrics: [

@@ -22,7 +22,7 @@ function isDisclosureChevronClick(event: MouseEvent<HTMLElement>) {
 }
 
 /**
- * Token Hub selected nav is fill-only — no leading indicator bar and no
+ * TokenOps Center selected nav is fill-only — no leading indicator bar and no
  * focus/selected outline that reads as a border around the pill.
  */
 const Nav = styled(SidebarNav)`
@@ -97,7 +97,7 @@ export function AppSidebar({ activeSection }: AppSidebarProps) {
       surface="translucent"
       logo={<AppMark />}
       productName="Lenovo"
-      appName="Token Hub"
+      appName="TokenOps Center"
       collapsed={collapsed}
       onCollapsedChange={setCollapsed}
     >

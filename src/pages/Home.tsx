@@ -812,7 +812,7 @@ export function Home({ onNavigate }: HomeProps) {
     <PageScroll>
       <Page>
         <Grid>
-          <HeroPanel role="region" aria-label="TokenHub overview">
+          <HeroPanel role="region" aria-label="TokenOps Center overview">
             <HeroMedia>
               <HeroImage src={heroImg} alt="" />
               <HeroScrim />
@@ -956,7 +956,7 @@ export function Home({ onNavigate }: HomeProps) {
                 </LeadIcon>
                 <RoutingTitle>Intelligent routing</RoutingTitle>
                 <RoutingBody>
-                  TokenHub orchestrates workloads across your AI ecosystem, automatically
+                  TokenOps Center orchestrates workloads across your AI ecosystem, automatically
                   selecting the best combination of model, provider, and infrastructure for
                   every request.
                 </RoutingBody>

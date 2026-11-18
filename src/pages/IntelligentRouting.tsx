@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Button,
   DataRow,
   HeaderRow,
   IconButton,
@@ -285,11 +286,6 @@ export function IntelligentRouting({ focusPolicies = false }: IntelligentRouting
     openTestPrompt(promptForDecision(row));
   }
 
-  function testPolicy(id: string) {
-    syncFocusPolicy(id as PolicyId);
-    openTestPrompt();
-  }
-
   const tryPolicyId = (focused?.id ?? 'brightsky-quality') as PolicyId;
   const showingAll = policyFilter === ALL;
   const chartNote = showingAll
@@ -336,9 +332,9 @@ export function IntelligentRouting({ focusPolicies = false }: IntelligentRouting
             >
               Create policy
             </HeaderActionButton>
-            <HeaderActionButton onClick={() => openTestPrompt()}>
+            <Button size="sm" intent="primary" onClick={() => openTestPrompt()}>
               Test a Prompt
-            </HeaderActionButton>
+            </Button>
           </>
         }
       />
@@ -400,6 +396,11 @@ export function IntelligentRouting({ focusPolicies = false }: IntelligentRouting
             ? 'Operational pulse across all policies. Inspect opens Test a Prompt for that scenario.'
             : 'Operational pulse for the filtered policy. Inspect opens Test a Prompt for that scenario.'
         }
+        actions={
+          <HeaderActionButton onClick={() => openTestPrompt()}>
+            Test a Prompt
+          </HeaderActionButton>
+        }
       >
         <RecentDecisionsTable rows={recentRows} onInspect={handleInspect} />
       </ReportPanel>
@@ -411,12 +412,11 @@ export function IntelligentRouting({ focusPolicies = false }: IntelligentRouting
       >
         <ReportPanel
           title="Routing policies"
-          note="Priority runs top-down. Expand a policy for constraints and fallbacks, or Test a Prompt from the card."
+          note="Priority runs top-down. Expand a policy for constraints and fallbacks."
         >
           <PolicyList
             policies={policies}
             onEdit={openEdit}
-            onTest={testPolicy}
             onStatusChange={handleStatusChange}
           />
         </ReportPanel>

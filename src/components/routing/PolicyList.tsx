@@ -193,11 +193,10 @@ const Chevron = styled(ChevronDown)<{ $open: boolean }>`
 interface PolicyListProps {
   policies: RoutingPolicy[];
   onEdit: (id: string) => void;
-  onTest: (id: string) => void;
   onStatusChange: (id: string, status: RoutingPolicy['status']) => void;
 }
 
-export function PolicyList({ policies, onEdit, onTest, onStatusChange }: PolicyListProps) {
+export function PolicyList({ policies, onEdit, onStatusChange }: PolicyListProps) {
   const baseId = useId();
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
 
@@ -266,14 +265,6 @@ export function PolicyList({ policies, onEdit, onTest, onStatusChange }: PolicyL
                     onClick={() => onEdit(policy.id)}
                   >
                     Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    intent="secondary"
-                    variant="outline"
-                    onClick={() => onTest(policy.id)}
-                  >
-                    Test this policy
                   </Button>
                   <Button
                     size="sm"

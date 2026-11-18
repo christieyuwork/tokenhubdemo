@@ -12,6 +12,7 @@ import {
   type GpuBusyLevel,
   type GpuBusyRow,
 } from '../charts/GpuBusyHeatmap';
+import { modelBadgeColor } from '../data/modelColors';
 import {
   BadgeGroup,
   CellBadge,
@@ -330,7 +331,7 @@ export function GpuFleet() {
               <WideDataCell>
                 {row.model && row.deployment ? (
                   <BadgeGroup>
-                    <CellBadge color="magenta" tone="subtle" dot={false}>
+                    <CellBadge color={modelBadgeColor(row.model)} tone="subtle" dot={false}>
                       {row.model}
                     </CellBadge>
                     <CellSecondary>{row.deployment}</CellSecondary>

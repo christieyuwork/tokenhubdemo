@@ -1,3 +1,4 @@
+import { modelChartColors } from './modelColors';
 import {
   brightsky,
   claims,
@@ -1226,30 +1227,26 @@ export const POLICY_IMPACT_CATEGORIES = ['Oct 20-26', 'Oct 27-Nov 2', 'Nov 3-9',
 
 export const POLICY_IMPACT_WEEKLY_TOTALS = [0.92, 0.98, 1.05, 1.12];
 
-/** Chart fills mirror cake& badge tokens (ECharts needs resolved colors). */
+/** Chart fills mirror cake& badge tokens via modelColors (ECharts needs resolved colors). */
 export const POLICY_IMPACT_SERIES: PolicyImpactSeries[] = [
   {
     name: 'Claude Sonnet 4.6 22%',
-    color: '#7586ff', // --color-badge-indigo
-    emphasisColor: '#5066ff', // --color-badge-text-icon-on-indigo-light
+    ...modelChartColors('Claude Sonnet 4.6'),
     share: 0.22,
   },
   {
     name: 'Llama 3.3 70B 48%',
-    color: '#009ebd', // --color-badge-cyan
-    emphasisColor: '#00829b', // --color-badge-text-icon-on-cyan-light
+    ...modelChartColors('Llama 3.3 70B'),
     share: 0.48,
   },
   {
     name: 'Llama 3.1 405B 18%',
-    color: '#cf29b7', // --color-badge-magenta
-    emphasisColor: '#cf29b7', // --color-badge-text-icon-on-magenta-light
+    ...modelChartColors('Llama 3.1 405B'),
     share: 0.18,
   },
   {
     name: 'Qwen 8B 12%',
-    color: '#a69100', // --color-badge-yellow
-    emphasisColor: '#897700', // --color-badge-text-icon-on-yellow-light
+    ...modelChartColors('Qwen 8B'),
     share: 0.12,
   },
 ];

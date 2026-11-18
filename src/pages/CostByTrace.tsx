@@ -7,11 +7,11 @@ import {
   HeaderRow,
   IconButton,
   TextInput,
-  type BadgeColor,
   type DateRangeValue,
 } from '@cake-admin/cakeand';
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Copy, Search } from 'lucide-react';
 import styled from 'styled-components';
+import { modelBadgeColor } from '../data/modelColors';
 import {
   CellBadge,
   MetricCard,
@@ -67,13 +67,6 @@ interface TraceRow {
   retries: number;
   steps: TraceStep[];
 }
-
-const MODEL_BADGE: Record<ModelName, BadgeColor> = {
-  'Claude Sonnet 4.6': 'indigo',
-  'Llama 3.3 70B': 'cyan',
-  'Qwen 8B': 'yellow',
-  'Llama 3.1 405B': 'magenta',
-};
 
 /** Canonical expanded sample — Brightsky quality-inspection trace. */
 const CH_48213_STEPS: TraceStep[] = [
@@ -668,7 +661,7 @@ export function CostByTrace() {
                               <StepValue>{step.name}</StepValue>
                             </DataCell>
                             <DataCell>
-                              <CellBadge color={MODEL_BADGE[step.model]} tone="subtle" dot={false}>
+                              <CellBadge color={modelBadgeColor(step.model)} tone="subtle" dot={false}>
                                 {step.model}
                               </CellBadge>
                             </DataCell>

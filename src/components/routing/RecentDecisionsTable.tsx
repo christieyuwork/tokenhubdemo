@@ -1,4 +1,5 @@
 import { Button, DataRow, HeaderCell, HeaderRow } from '@cake-admin/cakeand';
+import { modelBadgeColor } from '../../data/modelColors';
 import { formatCostPerUnit } from '../../data/scenarioEconomics';
 import { getPolicy, type RoutingDecisionRecord } from '../../data/routingDemo';
 import {
@@ -53,7 +54,11 @@ export function RecentDecisionsTable({ rows, onInspect }: RecentDecisionsTablePr
             <CompactDataCell>{row.timestamp}</CompactDataCell>
             <CompactDataCell>{row.workload}</CompactDataCell>
             <WideDataCell>{getPolicy(row.policyId).name}</WideDataCell>
-            <WideDataCell>{row.selectedModel}</WideDataCell>
+            <WideDataCell>
+              <CellBadge color={modelBadgeColor(row.selectedModel)} tone="subtle" dot={false}>
+                {row.selectedModel}
+              </CellBadge>
+            </WideDataCell>
             <WideDataCell>{row.routingReason}</WideDataCell>
             <WideDataCell>
               <CellBadge color={hostingBadgeColor(row.hosting)} tone="subtle" dot={false}>

@@ -36,6 +36,7 @@ import {
 import { RowActionsMenu } from '../components/config/RowActionsMenu';
 import { configStatusBadgeColor } from '../components/config/statusBadges';
 import { SortHeader, type SortDir } from '../components/config/SortHeader';
+import { modelBadgeColor } from '../data/modelColors';
 import {
   ConfigSearch,
   FormRow,
@@ -45,6 +46,7 @@ import {
 } from '../components/config/ConfigPageChrome';
 import {
   CellBadge,
+  CellBadgeCluster,
   CompactDataCell,
   MetricCard,
   MetricGrid,
@@ -319,9 +321,16 @@ export function AccessKeys() {
                 </CellBadge>
               </CompactDataCell>
               <WideDataCell>
-                {row.modelIds
-                  .map((id) => MODELS.find((m) => m.id === id)?.displayName ?? id)
-                  .join(', ')}
+                <CellBadgeCluster>
+                  {row.modelIds.map((id) => {
+                    const name = MODELS.find((m) => m.id === id)?.displayName ?? id;
+                    return (
+                      <CellBadge key={id} color={modelBadgeColor(name)} tone="subtle" dot={false}>
+                        {name}
+                      </CellBadge>
+                    );
+                  })}
+                </CellBadgeCluster>
               </WideDataCell>
               <CompactDataCell>{row.created}</CompactDataCell>
               <CompactDataCell>{row.lastUsed ?? 'Never'}</CompactDataCell>

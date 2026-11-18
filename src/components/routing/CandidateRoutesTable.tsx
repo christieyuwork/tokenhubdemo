@@ -1,4 +1,5 @@
 import { DataRow, HeaderCell, HeaderRow } from '@cake-admin/cakeand';
+import { modelBadgeColor } from '../../data/modelColors';
 import { formatCostPerUnit } from '../../data/scenarioEconomics';
 import type { CandidateRoute } from '../../data/routingDemo';
 import {
@@ -14,13 +15,9 @@ import { hostingBadgeColor, routingStatusBadgeColor } from './statusBadges';
 
 interface CandidateRoutesTableProps {
   candidates: CandidateRoute[];
-  selectedId: string;
 }
 
-export function CandidateRoutesTable({
-  candidates,
-  selectedId,
-}: CandidateRoutesTableProps) {
+export function CandidateRoutesTable({ candidates }: CandidateRoutesTableProps) {
   return (
     <CompactTableShell>
       <ReportTable
@@ -51,11 +48,7 @@ export function CandidateRoutesTable({
         {candidates.map((row) => (
           <DataRow key={row.id} selectable={false}>
             <WideDataCell>
-              <CellBadge
-                color={row.id === selectedId ? 'green' : 'secondary'}
-                tone="subtle"
-                dot={false}
-              >
+              <CellBadge color={modelBadgeColor(row.model)} tone="subtle" dot={false}>
                 {row.model}
               </CellBadge>
             </WideDataCell>

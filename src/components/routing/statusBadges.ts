@@ -26,9 +26,11 @@ export function routingStatusBadgeColor(status: RoutingStatus): BadgeColor {
   return 'yellow';
 }
 
+/** Hosting uses a separate palette from model pills (see modelColors.ts). */
 export function hostingBadgeColor(hosting: string): BadgeColor {
-  if (hosting === 'Public cloud') return 'indigo';
-  if (hosting === 'In-country') return 'magenta';
-  if (hosting === 'Lenovo infrastructure') return 'cyan';
+  if (hosting === 'Public cloud') return 'azure';
+  if (hosting === 'In-country') return 'amber';
+  if (hosting === 'Lenovo infrastructure') return 'teal';
+  if (hosting === 'Self-hosted') return 'jade';
   return 'secondary';
 }

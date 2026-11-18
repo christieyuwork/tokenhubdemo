@@ -1,6 +1,8 @@
 import styled from 'styled-components';
+import { modelBadgeColor } from '../../data/modelColors';
 import type { RoutingPolicy } from '../../data/routingDemo';
 import { CellBadge } from '../../pages/ReportPage';
+import { hostingBadgeColor } from './statusBadges';
 
 const Rows = styled.div`
   display: flex;
@@ -83,7 +85,7 @@ export function PolicyDetail({ policy }: PolicyDetailProps) {
           <Label>Eligible models</Label>
           <ChipRow>
             {policy.eligibleModels.map((model) => (
-              <CellBadge key={model} color="secondary" tone="subtle" dot={false}>
+              <CellBadge key={model} color={modelBadgeColor(model)} tone="subtle" dot={false}>
                 {model}
               </CellBadge>
             ))}
@@ -93,7 +95,7 @@ export function PolicyDetail({ policy }: PolicyDetailProps) {
           <Label>Eligible hosting</Label>
           <ChipRow>
             {policy.eligibleHosting.map((host) => (
-              <CellBadge key={host} color="cyan" tone="subtle" dot={false}>
+              <CellBadge key={host} color={hostingBadgeColor(host)} tone="subtle" dot={false}>
                 {host}
               </CellBadge>
             ))}

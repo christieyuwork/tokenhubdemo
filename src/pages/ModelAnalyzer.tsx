@@ -6,12 +6,12 @@ import {
   HeaderCell,
   HeaderRow,
   IconButton,
-  type BadgeColor,
   type DateRangeValue,
 } from '@cake-admin/cakeand';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import styled from 'styled-components';
 import { StackedBarChart, type StackedBarSeries } from '../charts/StackedBarChart';
+import { modelBadgeColor, modelChartColors } from '../data/modelColors';
 import {
   CellBadge,
   MetricCard,
@@ -27,50 +27,35 @@ import {
 interface ModelInfo {
   id: string;
   name: string;
-  badge: BadgeColor;
   provider: string;
   /** Effective price per 1M tokens at the demo usage mix. */
   perMillion: number;
-  color: string;
-  emphasisColor: string;
 }
 
 const MODELS: ModelInfo[] = [
   {
     id: 'claude-sonnet',
     name: 'Claude Sonnet 4.6',
-    badge: 'indigo',
     provider: 'Public cloud',
     perMillion: 25.32,
-    color: '#7586ff',
-    emphasisColor: '#6776ee',
   },
   {
     id: 'llama-70b',
     name: 'Llama 3.3 70B Instruct',
-    badge: 'cyan',
     provider: 'Lenovo infrastructure',
     perMillion: 3.82,
-    color: '#00bbdf',
-    emphasisColor: '#00aacb',
   },
   {
     id: 'llama-405b',
     name: 'Llama 3.1 405B Instruct',
-    badge: 'magenta',
     provider: 'In-country',
     perMillion: 13.3,
-    color: '#f65396',
-    emphasisColor: '#e24c8a',
   },
   {
     id: 'qwen-8b',
     name: 'Qwen 8B',
-    badge: 'yellow',
     provider: 'Self-hosted',
     perMillion: 1.8,
-    color: '#e2c600',
-    emphasisColor: '#d0b600',
   },
 ];
 
@@ -206,12 +191,15 @@ export function ModelAnalyzer() {
     () => [
       {
         name: 'Effective price',
-        color: MODELS[0].color,
-        data: MODELS.map((item) => ({
-          value: item.perMillion,
-          itemStyle: { color: item.color },
-          emphasis: { itemStyle: { color: item.emphasisColor } },
-        })) as unknown as number[],
+        color: modelChartColors(MODELS[0].name).color,
+        data: MODELS.map((item) => {
+          const chart = modelChartColors(item.name);
+          return {
+            value: item.perMillion,
+            itemStyle: { color: chart.color },
+            emphasis: { itemStyle: { color: chart.emphasisColor } },
+          };
+        }) as unknown as number[],
       },
     ],
     [],
@@ -244,7 +232,7 @@ export function ModelAnalyzer() {
         <MetricCard
           label="Current model"
           value={
-            <CellBadge color={current.badge} tone="subtle" dot={false}>
+            <CellBadge color={modelBadgeColor(current.name)} tone="subtle" dot={false}>
               {current.name}
             </CellBadge>
           }
@@ -330,12 +318,12 @@ export function ModelAnalyzer() {
           {rows.map((row) => (
             <DataRow key={row.id} selectable={false}>
               <DataCell>
-                <CellBadge color={current.badge} tone="subtle" dot={false}>
+                <CellBadge color={modelBadgeColor(row.model)} tone="subtle" dot={false}>
                   {row.model}
                 </CellBadge>
               </DataCell>
               <DataCell>
-                <CellBadge color={row.alternative.badge} tone="subtle" dot={false}>
+                <CellBadge color={modelBadgeColor(row.alternative.name)} tone="subtle" dot={false}>
                   {row.alternative.name}
                 </CellBadge>
               </DataCell>

@@ -39,6 +39,7 @@ import {
 import { RowActionsMenu } from '../components/config/RowActionsMenu';
 import { configStatusBadgeColor } from '../components/config/statusBadges';
 import { SortHeader, type SortDir } from '../components/config/SortHeader';
+import { modelBadgeColor } from '../data/modelColors';
 import {
   ConfigSearch,
   FormRow,
@@ -418,7 +419,7 @@ export function PricingAndRates() {
                 onClick={() => setSelectedId(row.id)}
               >
                 <CompactDataCell>
-                  <CellBadge color="indigo" tone="subtle" dot={false}>
+                  <CellBadge color={modelBadgeColor(modelName)} tone="subtle" dot={false}>
                     {modelName}
                   </CellBadge>
                 </CompactDataCell>

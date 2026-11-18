@@ -42,6 +42,7 @@ import {
 import { RowActionsMenu } from '../components/config/RowActionsMenu';
 import { configStatusBadgeColor } from '../components/config/statusBadges';
 import { SortHeader, type SortDir } from '../components/config/SortHeader';
+import { modelBadgeColor } from '../data/modelColors';
 import {
   ConfigSearch,
   FormRow,
@@ -375,7 +376,11 @@ export function ModelDeployments() {
             >
               <WideDataCell>{row.name}</WideDataCell>
               <CompactDataCell>
-                <CellBadge color="cyan" tone="subtle" dot={false}>
+                <CellBadge
+                  color={modelBadgeColor(modelById(row.modelId)?.displayName ?? '')}
+                  tone="subtle"
+                  dot={false}
+                >
                   {modelById(row.modelId)?.displayName}
                 </CellBadge>
               </CompactDataCell>

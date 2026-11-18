@@ -8,6 +8,7 @@ import {
 } from '@cake-admin/cakeand';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { StackedBarChart, type StackedBarSeries } from '../charts/StackedBarChart';
+import { modelBadgeColor } from '../data/modelColors';
 import {
   BadgeGroup,
   CellBadge,
@@ -293,7 +294,7 @@ export function Caching() {
             <DataRow key={row.id} selectable={false}>
               <WideDataCell>
                 <BadgeGroup>
-                  <CellBadge color="magenta" tone="subtle" dot={false}>
+                  <CellBadge color={modelBadgeColor(row.model)} tone="subtle" dot={false}>
                     {row.model}
                   </CellBadge>
                   <ValueBadge>{row.app}</ValueBadge>

@@ -4,12 +4,12 @@ import {
   DateInput,
   HeaderRow,
   IconButton,
-  type BadgeColor,
   type DateRangeValue,
 } from '@cake-admin/cakeand';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import styled from 'styled-components';
 import { StackedBarChart, type StackedBarSeries } from '../charts/StackedBarChart';
+import { modelBadgeColor, modelChartColors } from '../data/modelColors';
 import {
   CellBadge,
   CompactDataCell,
@@ -43,22 +43,19 @@ const DAILY_TOTALS = [9.8, 10.1, 10.0, 9.9, 10.2, 10.0, 9.7, 10.3, 150.4, 153.6,
 
 interface ModelSeries {
   name: string;
-  color: string;
-  emphasisColor: string;
   share: number;
 }
 
 const MODEL_SERIES: ModelSeries[] = [
-  { name: 'Claude Sonnet 4.6', color: '#7586ff', emphasisColor: '#6776ee', share: 0.52 },
-  { name: 'Llama 3.3 70B', color: '#00bbdf', emphasisColor: '#00aacb', share: 0.18 },
-  { name: 'Llama 3.1 405B', color: '#f65396', emphasisColor: '#e24c8a', share: 0.22 },
-  { name: 'Coding + ThinkStation PGX', color: '#e2c600', emphasisColor: '#d0b600', share: 0.08 },
+  { name: 'Claude Sonnet 4.6', share: 0.52 },
+  { name: 'Llama 3.3 70B', share: 0.18 },
+  { name: 'Llama 3.1 405B', share: 0.22 },
+  { name: 'Coding + ThinkStation PGX', share: 0.08 },
 ];
 
 interface ModelRow {
   id: string;
   model: string;
-  badge: BadgeColor;
   provider: string;
   inputTokens: string;
   cachedTokens: string;
@@ -73,7 +70,6 @@ const MODEL_ROWS: ModelRow[] = [
   {
     id: 'claude-sonnet',
     model: 'Claude Sonnet 4.6',
-    badge: 'indigo',
     provider: 'Public cloud',
     inputTokens: '28.0B',
     cachedTokens: '2.1B',
@@ -86,7 +82,6 @@ const MODEL_ROWS: ModelRow[] = [
   {
     id: 'llama-405b',
     model: 'Llama 3.1 405B Instruct',
-    badge: 'magenta',
     provider: 'Lenovo / in-country',
     inputTokens: '18.0B',
     cachedTokens: '1.2B',
@@ -99,7 +94,6 @@ const MODEL_ROWS: ModelRow[] = [
   {
     id: 'llama-70b',
     model: 'Llama 3.3 70B Instruct',
-    badge: 'cyan',
     provider: 'Lenovo infrastructure',
     inputTokens: '12.0B',
     cachedTokens: '3.4B',
@@ -112,7 +106,6 @@ const MODEL_ROWS: ModelRow[] = [
   {
     id: 'coding-pgx',
     model: 'Coding agent + ThinkStation PGX',
-    badge: 'yellow',
     provider: 'Public cloud + ThinkStation PGX',
     inputTokens: '4.2B',
     cachedTokens: '0.40B',
@@ -252,12 +245,15 @@ export function CostByModel() {
 
   const chartSeries = useMemo<StackedBarSeries[]>(
     () =>
-      MODEL_SERIES.filter((item) => model === ALL || item.name === model).map((item) => ({
-        name: item.name,
-        color: item.color,
-        emphasisColor: item.emphasisColor,
-        data: DAILY_TOTALS.map((total) => total * item.share),
-      })),
+      MODEL_SERIES.filter((item) => model === ALL || item.name === model).map((item) => {
+        const chart = modelChartColors(item.name);
+        return {
+          name: item.name,
+          color: chart.color,
+          emphasisColor: chart.emphasisColor,
+          data: DAILY_TOTALS.map((total) => total * item.share),
+        };
+      }),
     [model],
   );
 
@@ -366,7 +362,7 @@ export function CostByModel() {
           {rows.map((row) => (
             <DataRow key={row.id} selectable={false}>
               <CompactDataCell>
-                <CellBadge color={row.badge} tone="subtle" dot={false}>
+                <CellBadge color={modelBadgeColor(row.model)} tone="subtle" dot={false}>
                   {row.model}
                 </CellBadge>
               </CompactDataCell>

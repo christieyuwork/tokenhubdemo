@@ -4,7 +4,6 @@ import {
   DataRow,
   HeaderRow,
   IconButton,
-  type BadgeColor,
 } from '@cake-admin/cakeand';
 import { ArrowDown, ArrowUp, Plus } from 'lucide-react';
 import styled from 'styled-components';
@@ -18,6 +17,7 @@ import { PolicyList } from '../components/routing/PolicyList';
 import { PolicySummary } from '../components/routing/PolicySummary';
 import { RecentDecisionsTable } from '../components/routing/RecentDecisionsTable';
 import { TryRequestModal } from '../components/routing/TryRequestModal';
+import { modelBadgeColor } from '../data/modelColors';
 import {
   aggregatePolicyMetrics,
   decisionsForPolicies,
@@ -69,6 +69,10 @@ const PoliciesSection = styled.div`
 `;
 
 const LatestTeaser = styled.p`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-100);
   margin: 0;
   color: var(--color-text-icon-primary);
   font-size: var(--type-size-body);
@@ -80,14 +84,6 @@ const LatestMeta = styled.span`
   color: var(--color-text-icon-secondary);
   font-weight: var(--font-weight-medium);
 `;
-
-function modelBadgeColor(model: string): BadgeColor {
-  if (model.includes('Claude')) return 'indigo';
-  if (model.includes('70B')) return 'cyan';
-  if (model.includes('405B')) return 'magenta';
-  if (model.includes('Qwen')) return 'yellow';
-  return 'secondary';
-}
 
 function formatChartLabel(value: number) {
   return `${value.toFixed(2)}M`;
@@ -365,10 +361,12 @@ export function IntelligentRouting({ focusPolicies = false }: IntelligentRouting
       {latest ? (
         <ReportPanel title="Latest selected route">
           <LatestTeaser>
-            {latest.selectedModel} · {latest.hosting}
+            <CellBadge color={modelBadgeColor(latest.selectedModel)} tone="subtle" dot={false}>
+              {latest.selectedModel}
+            </CellBadge>
             <LatestMeta>
               {' '}
-              · {latest.routingReason} · {latest.timestamp}
+              · {latest.hosting} · {latest.routingReason} · {latest.timestamp}
             </LatestMeta>
           </LatestTeaser>
         </ReportPanel>

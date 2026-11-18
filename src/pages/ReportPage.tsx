@@ -1,5 +1,7 @@
 import { useMemo, type ComponentProps, type ReactNode } from 'react';
 import {
+  Badge,
+  Button,
   Card,
   ContentSwitcher,
   DataCell,
@@ -8,7 +10,7 @@ import {
   Scrollbar,
   Table,
 } from '@cake-admin/cakeand';
-import styled, { css } from 'styled-components';
+import styled, { createGlobalStyle, css } from 'styled-components';
 
 export interface ReportSectionOption {
   value: string;
@@ -73,11 +75,11 @@ const Content = styled.div`
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--space-300);
+  gap: var(--space-200);
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  padding: var(--space-500) 0;
+  padding: var(--space-400) 0;
   /* Split-screen / sidebar: MetricGrid queries this, not the viewport. */
   container-type: inline-size;
   container-name: report-content;
@@ -150,13 +152,13 @@ const HeaderInner = styled.div`
 const Titles = styled.div`
   display: flex;
   /*
-    Absorb free space so the filter cluster stays pinned to the right and the
-    subtitle has a real wrap width.
+    Title block takes remaining space and must not be crushed below a readable
+    width — filters shrink / wrap first.
   */
   flex: 1 1 auto;
   flex-direction: column;
   gap: var(--space-100);
-  min-width: 0;
+  min-width: min(100%, calc(var(--space-1000) * 2));
   max-width: 100%;
 `;
 
@@ -166,10 +168,77 @@ const Title = styled.h1`
   font-size: var(--type-size-page);
   font-weight: var(--font-weight-bold);
   line-height: 1.35;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Full title always wins over filter width — wrap rather than ellipsize. */
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
 `;
+
+/** Wraps the gradient banner + optional CTA row so Content gap stays outside. */
+const HeaderStack = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-200);
+  width: 100%;
+  min-width: 0;
+`;
+
+/**
+ * Row just below the gradient banner: optional leading meta on the left,
+ * CTAs right-justified via HeaderActionGroup.
+ */
+export const HeaderActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-200);
+  width: 100%;
+  min-width: 0;
+`;
+
+/** Leading status / summary strip that shares the below-banner row with CTAs. */
+export const HeaderMeta = styled.div`
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-200);
+  min-width: 0;
+  color: var(--color-text-icon-secondary);
+  font-size: var(--type-size-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.35;
+`;
+
+export const HeaderMetaStrong = styled.span`
+  color: var(--color-text-icon-primary);
+  font-weight: var(--font-weight-bold);
+`;
+
+/** Keeps below-banner CTAs clustered and pinned to the trailing edge. */
+export const HeaderActionGroup = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-200);
+  margin-left: auto;
+  flex: 0 0 auto;
+  min-width: 0;
+`;
+
+/**
+ * Secondary outline CTA for the row below the gradient banner (canvas surface).
+ */
+export const HeaderActionButton = styled(Button).attrs({
+  size: 'sm',
+  intent: 'secondary',
+  variant: 'outline',
+})``;
+
+/** @deprecated Prefer HeaderActionButton — same secondary outline below the banner. */
+export const HeaderOutlineButton = HeaderActionButton;
 
 const Description = styled.p`
   margin: 0;
@@ -184,8 +253,73 @@ const Description = styled.p`
   overflow: hidden;
 `;
 
-/** ~260px — longest closed filter width before a long option blows the row. */
-const FILTER_MAX_WIDTH = `calc(var(--space-1000) * 3 + var(--space-400))`;
+/**
+ * Cap closed filter width so the hero title keeps room. Each dropdown locks to
+ * its longest option (stable across selection); long selected labels ellipsize
+ * inside that fixed width instead of resizing the field.
+ */
+const FILTER_MAX_WIDTH = `calc(var(--space-1000) * 2 + var(--space-500))`;
+
+/**
+ * Shared DateInput range width on every report header — one size app-wide.
+ * Tightest token fit for two MM/DD/YY fields + em dash + calendar chrome
+ * (label-field left pad + borders included).
+ */
+const FILTER_DATE_WIDTH = `calc(var(--space-1000) * 2 + var(--space-900))`;
+
+/** Floor for each MM/DD/YY input so the placeholder never collapses. */
+const FILTER_DATE_FIELD_MIN = `calc(var(--space-900) + var(--space-200))`;
+
+/** 12px gutters between every adjacent filter control. */
+const FILTER_GUTTER = `var(--space-200)`;
+
+/**
+ * cake& Dropdown portals the listbox to document.body — style open menus here
+ * so long options wrap with tight spacing and clear dividers between items.
+ */
+const ReportDropdownMenuStyles = createGlobalStyle`
+  /*
+    Closed triggers hug the selected value (often “All”), but the open menu
+    must stay readable — don’t inherit a tiny trigger width.
+  */
+  [role='listbox'] {
+    box-sizing: border-box;
+    width: max-content;
+    min-width: max(
+      var(--radix-select-trigger-width, 0px),
+      calc(var(--space-1000) * 2 + var(--space-500))
+    );
+    max-width: min(90vw, calc(var(--space-1000) * 4));
+  }
+
+  [role='listbox'] [role='option'] {
+    box-sizing: border-box;
+    align-items: flex-start;
+    height: auto;
+    min-height: var(--space-700);
+    white-space: normal;
+    overflow-wrap: anywhere;
+    /* Tight rhythm — dividers carry separation, not large gaps. */
+    padding-block: var(--space-100);
+    padding-inline: var(--space-100);
+    gap: var(--space-025);
+    border-radius: 0;
+  }
+
+  [role='listbox'] [role='option'] + [role='option'] {
+    border-top: var(--stroke-100) solid var(--color-stroke-border);
+  }
+
+  [role='listbox'] [role='option']:first-child {
+    border-top-left-radius: var(--radius-200);
+    border-top-right-radius: var(--radius-200);
+  }
+
+  [role='listbox'] [role='option']:last-child {
+    border-bottom-left-radius: var(--radius-200);
+    border-bottom-right-radius: var(--radius-200);
+  }
+`;
 
 const Filters = styled.div`
   display: flex;
@@ -195,34 +329,57 @@ const Filters = styled.div`
   justify-content: flex-start;
   /* Push the cluster to the hero’s padded right edge; leftover sits before it. */
   margin-left: auto;
-  /* Shrink-wrap to capped children so no empty track sits after Rule. */
+  /* Shrink-wrap to each field’s locked width (date / longest option). */
   width: max-content;
-  /*
-    One uniform gap between every adjacent filter (Date, Grain, Provider, …).
-    Children must not grow or leftover width opens uneven tracks between them.
-  */
-  gap: var(--space-200);
+  /* 12px gutters between every adjacent filter — same on every subpage. */
+  gap: ${FILTER_GUTTER};
   min-width: 0;
-  max-width: 100%;
-  /* Figma filter row: label (body) + 8 gap + 40 control = 67. */
-  height: calc((var(--type-size-body) * 1.35) + var(--space-100) + var(--space-700));
+  max-width: min(75%, 100%);
 
   /*
-    Date + Dropdowns size to their visible control, capped so a long option
-    label (e.g. Intelligent routing Rule) cannot blow past ~260px
-    (space-1000 × 3 + space-400) or the filter row width.
+    DateInput range — one fixed width app-wide. cake& leaves field min-width:0
+    so MM/DD/YY collapses; stretch the labeled column + input row, then split
+    the room evenly across the two date fields.
   */
-  & > * {
+  & > *:has(input[placeholder='MM/DD/YY']) {
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: ${FILTER_DATE_WIDTH};
+    min-width: ${FILTER_DATE_WIDTH};
+    max-width: ${FILTER_DATE_WIDTH};
+  }
+
+  & > *:has(input[placeholder='MM/DD/YY']) > * {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    align-items: stretch;
+  }
+
+  & > *:has(input[placeholder='MM/DD/YY']) *:has(> input[placeholder='MM/DD/YY']) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    flex: 1 1 auto;
+  }
+
+  & > *:has(input[placeholder='MM/DD/YY']) input[placeholder='MM/DD/YY'] {
+    box-sizing: border-box;
+    flex: 1 1 0;
+    width: auto;
+    min-width: ${FILTER_DATE_FIELD_MIN};
+  }
+
+  /* Dropdowns: width locked by FilterDropdownField sizer — do not flex-grow. */
+  & > :not(:has(input[placeholder='MM/DD/YY'])) {
     flex: 0 1 auto;
-    width: min(max-content, ${FILTER_MAX_WIDTH});
     min-width: 0;
     max-width: min(100%, ${FILTER_MAX_WIDTH});
   }
 
   /*
-    Closed trigger only. Height is the cake& control (40px / space-700) so the
-    selected value cannot wrap or spill out of the field. Left-align the value
-    so short labels like "All" do not look centered in a wide sizer field.
+    Closed trigger — fixed height, left-aligned. Selected value ellipsizes
+    inside the locked width so picking a longer option never resizes the field.
   */
   & [role='combobox'] {
     box-sizing: border-box;
@@ -239,6 +396,7 @@ const Filters = styled.div`
   & [role='combobox'] > span:first-child {
     flex: 1 1 auto;
     min-width: 0;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -247,19 +405,34 @@ const Filters = styled.div`
 
   & [role='combobox'] > span:last-child {
     flex: 0 0 auto;
+    align-self: center;
   }
 
-  /* Title above; filters wrap two-up under the titles. */
+  /* Title above; filters wrap — date range keeps a full row when tight. */
   @container report-header (max-width: 720px) {
     margin-left: 0;
     width: 100%;
     max-width: 100%;
-    height: auto;
     flex-wrap: wrap;
+    gap: ${FILTER_GUTTER};
 
-    & > * {
-      flex: 1 1 calc((100% - var(--space-200)) / 2);
+    & > *:has(input[placeholder='MM/DD/YY']) {
+      flex: 1 1 100%;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    & > *:has(input[placeholder='MM/DD/YY']) > *,
+    & > *:has(input[placeholder='MM/DD/YY']) *:has(> input[placeholder='MM/DD/YY']) {
+      width: 100%;
+      max-width: none;
+    }
+
+    & > :not(:has(input[placeholder='MM/DD/YY'])) {
+      flex: 1 1 calc((100% - ${FILTER_GUTTER}) / 2);
       width: auto;
+      min-width: 0;
       max-width: 100%;
     }
   }
@@ -268,26 +441,19 @@ const Filters = styled.div`
   @container report-header (max-width: 480px) {
     & > * {
       flex: 1 1 100%;
+      width: auto;
+      min-width: 0;
+      max-width: 100%;
     }
   }
 `;
 
 /**
- * Sizes the closed Dropdown trigger to the longest option label (plus chevron
- * chrome). On narrow headers the field shrinks and the selected value ellipsizes
- * — never wraps or overflows vertically.
- *
- * The real Dropdown uses width 100%; `width: 0; min-width: 100%` keeps it from
- * contributing its own max-content to the grid track so only the sizer drives width.
+ * Locks the closed Dropdown width to the longest option label (capped). Width
+ * stays constant as the selection changes; the visible value ellipsizes inside.
  */
 const FilterDropdownField = styled.div`
   display: inline-grid;
-  /*
-    Prefer the sizer's max-content width, capped at ~260px. Use min() on width
-    (not only max-width) so the flex parent's intrinsic size matches the capped
-    used width — otherwise Filters stays ~uncapped wide and leaves empty space
-    after a long Rule label.
-  */
   grid-template-columns: minmax(0, max-content);
   justify-items: stretch;
   box-sizing: border-box;
@@ -302,18 +468,12 @@ const FilterDropdownField = styled.div`
     visibility: hidden;
     pointer-events: none;
     white-space: nowrap;
-    /*
-      Cap the sizer so max-content matches the field max-width. Without this,
-      Filters' intrinsic width stays at the uncapped label (~383px) while the
-      trigger renders at 260px — leaving empty space after Rule.
-    */
     max-width: ${FILTER_MAX_WIDTH};
     overflow: hidden;
     /*
       Mirror cake& trigger + Select.Value chrome:
       trigger pad (space-200) + Value pad (space-100) on the start;
-      Value pad + gap (space-100) + 24px chevron (space-500) + trigger pad on the end;
-      plus 1px borders so border-box sizing still fits the full label.
+      Value pad + gap (space-100) + 24px chevron (space-500) + trigger pad on the end.
     */
     border: var(--stroke-100) solid transparent;
     padding-inline-start: calc(var(--space-200) + var(--space-100));
@@ -338,7 +498,10 @@ const FilterDropdownField = styled.div`
 
 type ReportFilterDropdownProps = ComponentProps<typeof Dropdown>;
 
-/** Report-header Dropdown that stays wide enough for its longest option label. */
+/**
+ * Report-header Dropdown with a stable width: sized once to the longest option
+ * (capped), so changing the selection never resizes the trigger.
+ */
 export function ReportFilterDropdown({
   options = [],
   placeholder,
@@ -348,13 +511,11 @@ export function ReportFilterDropdown({
   const sizerLabel = useMemo(() => {
     const labels = options.map((option) => option.label);
     if (placeholder) labels.push(placeholder);
-    const selected = options.find((option) => option.value === value)?.label;
-    if (selected) labels.push(selected);
     return labels.reduce(
       (longest, label) => (label.length > longest.length ? label : longest),
       'All',
     );
-  }, [options, placeholder, value]);
+  }, [options, placeholder]);
 
   const title =
     options.find((option) => option.value === value)?.label ?? placeholder ?? undefined;
@@ -373,7 +534,7 @@ export const MetricGrid = styled.div`
   box-sizing: border-box;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-300);
+  gap: var(--space-200);
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -395,8 +556,8 @@ export const MetricGrid = styled.div`
 const MetricInner = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--space-100);
-  padding: var(--space-500);
+  gap: var(--space-050);
+  padding: var(--space-300) var(--space-400);
 `;
 
 const MetricLabel = styled.p`
@@ -434,11 +595,11 @@ const SectionInner = styled.div`
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--space-300);
+  gap: var(--space-200);
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  padding: var(--space-500);
+  padding: var(--space-400);
 
   /* Charts/tables scroll inside the panel if they still exceed the content box. */
   & > *:last-child {
@@ -489,19 +650,34 @@ interface ReportHeaderProps {
   title: string;
   description: string;
   filters?: ReactNode;
+  /** Optional leading summary on the below-banner row (shares the line with actions). */
+  meta?: ReactNode;
+  /** Optional CTAs rendered just below the banner, right-justified (e.g. Add rate). */
+  actions?: ReactNode;
 }
 
-export function ReportHeader({ title, description, filters }: ReportHeaderProps) {
+export function ReportHeader({ title, description, filters, meta, actions }: ReportHeaderProps) {
+  const showActionRow = Boolean(meta || actions);
+
   return (
-    <HeaderCard>
-      <HeaderInner>
-        <Titles>
-          <Title>{title}</Title>
-          <Description>{description}</Description>
-        </Titles>
-        {filters ? <Filters>{filters}</Filters> : null}
-      </HeaderInner>
-    </HeaderCard>
+    <HeaderStack>
+      <HeaderCard>
+        <ReportDropdownMenuStyles />
+        <HeaderInner>
+          <Titles>
+            <Title>{title}</Title>
+            <Description>{description}</Description>
+          </Titles>
+          {filters ? <Filters>{filters}</Filters> : null}
+        </HeaderInner>
+      </HeaderCard>
+      {showActionRow ? (
+        <HeaderActions>
+          {meta ? <HeaderMeta>{meta}</HeaderMeta> : null}
+          {actions ? <HeaderActionGroup>{actions}</HeaderActionGroup> : null}
+        </HeaderActions>
+      ) : null}
+    </HeaderStack>
   );
 }
 
@@ -590,14 +766,14 @@ export function ReportPanel({ title, note, actions, children }: ReportPanelProps
 export const reportCol = {
   /** GPU, Server, Status, Time — short labels */
   compact: 'minmax(var(--space-1000), 1fr)',
-  /** Utilization, Idle hours, $, counts — numeric / medium */
-  metric: 'minmax(calc(var(--space-1000) + var(--space-200)), 1.25fr)',
+  /** Utilization, Idle hours, Temperature, $, counts — numeric / medium */
+  metric: 'minmax(calc(var(--space-1000) + var(--space-500)), 1.25fr)',
   /** Rule, Scope, Notified, Provider, Why, model name */
   wide: 'minmax(calc(var(--space-1000) * 2), 2.5fr)',
   /** Match text, deployment + badge cluster, long prompts */
   widePlus: 'minmax(calc(var(--space-1000) * 3), 3.5fr)',
-  /** Expand / row icon. */
-  icon: 'minmax(var(--space-700), var(--space-900))',
+  /** Row actions / expand control — wide enough for an "Actions" header. */
+  icon: 'minmax(var(--space-1000), var(--space-1000))',
 } as const;
 
 /** Text-heavy columns grow into leftover width (fallback when $cols is omitted). */
@@ -620,6 +796,55 @@ const compactColumnCss = css`
 `;
 
 /**
+ * cake& Badge is single-line (nowrap, zero block padding, radius-1000 capsule).
+ * In dense tables a long label must wrap inside the column — a full pill radius
+ * then reads as a stretched oval, so CellBadge uses a rounded-rect radius
+ * instead. Shared by CellBadge / ValueBadge so every wrapping label matches.
+ */
+const wrappingBadgeCss = css`
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: 100%;
+  /* Do not inherit the table's min-width:0 — that shrinks short labels and splits words. */
+  min-width: min-content;
+  height: auto;
+  /* cake& uses padding: 0 inline-only; block pad keeps wrapped glyphs inside the wash. */
+  padding-block: var(--space-050);
+  padding-inline: var(--space-100);
+  /* Rounded rect — keeps multi-line labels from becoming stadium ovals. */
+  border-radius: var(--radius-150);
+  overflow: hidden;
+  white-space: normal;
+  /* Prefer wrapping at spaces; only break long tokens when the column is tighter. */
+  overflow-wrap: break-word;
+  word-break: normal;
+  text-overflow: unset;
+  text-align: left;
+  justify-content: flex-start;
+  align-items: center;
+  line-height: 1.35;
+`;
+
+/**
+ * Table / dense-layout Badge. Prefer this over raw cake& Badge anywhere a
+ * label can wrap or sit in a constrained column.
+ */
+export const CellBadge = styled(Badge)`
+  && {
+    ${wrappingBadgeCss}
+  }
+`;
+
+/** Secondary/subtle CellBadge used for plain values in report tables. */
+export function ValueBadge({ children }: { children: ReactNode }) {
+  return (
+    <CellBadge color="secondary" tone="subtle" dot={false}>
+      {children}
+    </CellBadge>
+  );
+}
+
+/**
  * Horizontal cluster for 2+ badges / pills / secondary labels.
  * One row with gap space-200; wraps to another line instead of ellipsis.
  */
@@ -639,13 +864,6 @@ export const BadgeGroup = styled.div`
     max-width: 100%;
   }
 
-  /* cake& Badge is nowrap. Let a long pill wrap inside the column. */
-  & > span {
-    height: auto;
-    white-space: normal;
-    text-align: left;
-    justify-content: flex-start;
-  }
 `;
 
 /** Secondary text beside a badge inside BadgeGroup (e.g. deployment name). */
@@ -751,8 +969,10 @@ const StyledReportTable = styled(Table)<ReportTableStyledProps>`
             max-width: 100%;
             overflow: visible;
             white-space: normal;
-            align-items: center;
-            justify-content: flex-start;
+            /* Beat cake& DataCell/HeaderCell align-items:center. */
+            align-items: flex-start !important;
+            justify-content: flex-start !important;
+            text-align: left;
           }
         `
       : css`
@@ -761,26 +981,29 @@ const StyledReportTable = styled(Table)<ReportTableStyledProps>`
             min-width: 0;
             overflow: visible;
             white-space: normal;
-            align-items: center;
-            justify-content: flex-start;
+            align-items: flex-start !important;
+            justify-content: flex-start !important;
+            text-align: left;
           }
         `}
 
-  [role='row'] > div:nth-child(2) > [role='gridcell'] > *:not(button) {
+  /* Non-span content (groups, stacks) can shrink; pills set their own min-width. */
+  [role='row'] > div:nth-child(2) > [role='gridcell'] > *:not(button):not(span) {
     max-width: 100%;
     min-width: 0;
   }
 
-  /* Long cake& Badge labels wrap inside the column instead of clipping. */
+  /*
+    Plain DataCell / HeaderCell text spans wrap instead of ellipsis.
+    Pills use CellBadge (own wrapping rules).
+  */
   [role='row'] > div:nth-child(2) > [role='gridcell'] > span,
   [role='row'] > div:nth-child(2) > [role='columnheader'] > span {
     max-width: 100%;
     height: auto;
-    overflow: visible;
     white-space: normal;
     text-overflow: unset;
-    text-align: left;
-    justify-content: flex-start;
+    overflow: visible;
   }
 `;
 
@@ -801,13 +1024,56 @@ export function ReportTable(props: ReportTableProps) {
 /** Short columns — small $cols track. Does not grow when $cols is omitted. */
 export const CompactDataCell = styled(DataCell)`
   ${compactColumnCss}
-  align-items: center;
+
+  && {
+    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left;
+  }
+`;
+
+/**
+ * Tighter row padding for information-dense operational tables (routing
+ * candidates, policy catalogs). Wraps ReportTable; does not invent a new table.
+ */
+export const CompactTableShell = styled.div`
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  [role='row'] > div:nth-child(2) > [role='gridcell'],
+  [role='row'] > div:nth-child(2) > [role='columnheader'] {
+    padding-block: var(--space-100) !important;
+    min-height: var(--space-700);
+    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left;
+  }
 `;
 
 /** Text-heavy columns — wide $cols track, or leftover width when $cols is omitted. */
 export const WideDataCell = styled(DataCell)`
   ${wideColumnCss}
-  align-items: center;
+
+  && {
+    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left;
+  }
+`;
+
+/**
+ * Pill + trailing note in one cell (e.g. routing status · reason).
+ * Left + top aligned; wraps as a unit instead of centering the pill.
+ */
+export const CellBadgeCluster = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: var(--space-100);
+  min-width: 0;
+  max-width: 100%;
 `;
 
 /**
@@ -817,6 +1083,12 @@ export const WideDataCell = styled(DataCell)`
 export const SortableHeaderCell = styled(HeaderCell)<{ $wide?: boolean }>`
   cursor: pointer;
   ${({ $wide }) => ($wide ? wideColumnCss : compactColumnCss)}
+
+  && {
+    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left;
+  }
 
   /* Unsorted headers pick up primary on hover — sorted already uses active. */
   &:hover > span {

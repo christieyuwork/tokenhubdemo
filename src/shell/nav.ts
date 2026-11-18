@@ -58,7 +58,6 @@ export const navGroups: NavGroup[] = [
     icon: optimization,
     items: [
       { value: 'intelligent-routing', label: 'Intelligent routing' },
-      { value: 'routing-rules', label: 'Routing rules' },
       { value: 'model-analyzer', label: 'Model analyzer' },
       { value: 'caching', label: 'Caching' },
       { value: 'energy', label: 'Energy' },

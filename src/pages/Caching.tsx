@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Badge,
   DataRow,
   DateInput,
   HeaderRow,
@@ -11,6 +10,7 @@ import { ArrowDown, ArrowUp } from 'lucide-react';
 import { StackedBarChart, type StackedBarSeries } from '../charts/StackedBarChart';
 import {
   BadgeGroup,
+  CellBadge,
   CompactDataCell,
   MetricCard,
   MetricGrid,
@@ -18,6 +18,7 @@ import {
   ReportPanel,
   ReportTable,
   SortableHeaderCell,
+  ValueBadge,
   WideDataCell,
   reportCol,
   ReportFilterDropdown,
@@ -44,19 +45,19 @@ interface DeploymentRow {
 }
 const DEPLOYMENT_ROWS: DeploymentRow[] = [
   {
-    id: 'crew-dc1-02',
-    model: 'Open-70B',
-    app: 'Crew scheduling',
-    runsOn: 'srv-dc1-02, GPUs 5-8',
+    id: 'qi-dc1-02',
+    model: 'Llama 3.3 70B',
+    app: 'Quality inspection',
+    runsOn: 'srv-dc1-02, H100 5-8',
     requests: '3.0M',
     hitRate: '79%',
     tokensReused: '2.5B',
   },
   {
-    id: 'crew-dc1-01',
-    model: 'Open-70B',
-    app: 'Crew scheduling',
-    runsOn: 'srv-dc1-01, GPUs 1-4',
+    id: 'qi-dc1-01',
+    model: 'Llama 3.3 70B',
+    app: 'Quality inspection',
+    runsOn: 'srv-dc1-01, H100 1-4',
     requests: '0.45M',
     hitRate: '2%',
     tokensReused: '0.1B',
@@ -70,7 +71,7 @@ interface PromptRow {
 const PROMPT_ROWS: PromptRow[] = [
   {
     id: 'fare-rules',
-    segment: 'Fare rules and rebooking policy',
+    segment: 'Defect taxonomy and inspection policy',
     share: '46%',
   },
   {
@@ -137,13 +138,6 @@ function promptSortValue(row: PromptRow, key: PromptSortKey): string | number {
       return metricValue(row.share);
   }
 }
-function ValueBadge({ children }: { children: string }) {
-  return (
-    <Badge color="secondary" tone="subtle" dot={false}>
-      {children}
-    </Badge>
-  );
-}
 function formatPercent(value: number) {
   return `${value}%`;
 }
@@ -199,7 +193,7 @@ export function Caching() {
     <>
       <ReportHeader
         title="Caching"
-        description="Repeated prompt text that our own models reuse instead of processing again."
+        description="Repeated prompt text that owned models reuse instead of processing again."
         filters={
           <>
             <DateInput
@@ -224,11 +218,11 @@ export function Caching() {
         <MetricCard
           label="GPU time saved"
           value="410 hours"
-          caption="estimate Â· of 2,688 GPU hours"
+          caption="estimate · of 2,688 GPU hours"
         />
         <MetricCard label="Deployments with caching" value="2" caption="" />
       </MetricGrid>
-      <ReportPanel title="Cache hit rate by week, Open-70B Â· travel assistant">
+      <ReportPanel title="Cache hit rate by week · Llama 3.3 70B · quality inspection">
         <StackedBarChart
           categories={CATEGORIES}
           series={CHART_SERIES}
@@ -241,7 +235,7 @@ export function Caching() {
           yMax={100}
           yInterval={25}
           height={180}
-          ariaLabel="Cache hit rate by week for Open-70B travel assistant, September 1 through September 28"
+          ariaLabel="Cache hit rate by week for Llama 3.3 70B quality inspection, September 1 through September 28"
         />
       </ReportPanel>
       <ReportPanel title="By model deployment">
@@ -299,9 +293,9 @@ export function Caching() {
             <DataRow key={row.id} selectable={false}>
               <WideDataCell>
                 <BadgeGroup>
-                  <Badge color="magenta" tone="subtle" dot={false}>
+                  <CellBadge color="magenta" tone="subtle" dot={false}>
                     {row.model}
-                  </Badge>
+                  </CellBadge>
                   <ValueBadge>{row.app}</ValueBadge>
                 </BadgeGroup>
               </WideDataCell>
@@ -321,9 +315,9 @@ export function Caching() {
           ))}
         </ReportTable>
       </ReportPanel>
-      <ReportPanel title="Most reused prompt text Â· travel assistant">
+      <ReportPanel title="Most reused prompt text · quality inspection">
         <ReportTable
-          aria-label="Most reused prompt text Â· travel assistant"
+          aria-label="Most reused prompt text · quality inspection"
           $cols={[reportCol.widePlus, reportCol.metric].join(' ')}
           header={
             <HeaderRow>

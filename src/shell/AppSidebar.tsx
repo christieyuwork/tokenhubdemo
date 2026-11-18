@@ -101,7 +101,7 @@ export function AppSidebar({ activeSection }: AppSidebarProps) {
       collapsed={collapsed}
       onCollapsedChange={setCollapsed}
     >
-      <SidebarSectionHeader>Client name</SidebarSectionHeader>
+      <SidebarSectionHeader>Brightsky</SidebarSectionHeader>
       {topLinks.map((link) => (
         <SidebarItem
           key={link.value}

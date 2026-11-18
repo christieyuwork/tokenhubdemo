@@ -21,29 +21,7 @@ import {
   Zap,
 } from 'lucide-react';
 import styled from 'styled-components';
-import accessKeysImg from '../assets/landing/access-keys.jpg';
-import administrationHeroImg from '../assets/landing/administration-hero.jpg';
-import alertListImg from '../assets/landing/alert-list.jpg';
-import alertRulesImg from '../assets/landing/alert-rules.jpg';
-import alertsHeroImg from '../assets/landing/alerts-hero.jpg';
-import cachingImg from '../assets/landing/caching.jpg';
-import connectionsImg from '../assets/landing/connections.jpg';
-import costByModelImg from '../assets/landing/cost-by-model.jpg';
-import costByTraceImg from '../assets/landing/cost-by-trace.jpg';
-import costHeroImg from '../assets/landing/cost-hero.jpg';
-import energyImg from '../assets/landing/energy.jpg';
-import gpuFleetImg from '../assets/landing/gpu-fleet.jpg';
-import gpuRegistryImg from '../assets/landing/gpu-registry.jpg';
-import intelligentRoutingImg from '../assets/landing/intelligent-routing.jpg';
-import invoiceReconciliationImg from '../assets/landing/invoice-reconciliation.jpg';
-import modelAnalyzerImg from '../assets/landing/model-analyzer.jpg';
-import modelDeploymentsImg from '../assets/landing/model-deployments.jpg';
-import modelRegistryImg from '../assets/landing/model-registry.jpg';
-import operationsHeroImg from '../assets/landing/operations-hero.jpg';
-import optimizationHeroImg from '../assets/landing/optimization-hero.jpg';
-import pricingAndRatesImg from '../assets/landing/pricing-and-rates.jpg';
-import quotasImg from '../assets/landing/quotas.jpg';
-import routingRulesImg from '../assets/landing/routing-rules.jpg';
+import { PRIMARY_POLICY_NAME, PRIMARY_ROUTING_SCENARIO } from '../data/scenarioEconomics';
 
 export type CategoryId =
   | 'cost'
@@ -69,7 +47,6 @@ interface FeatureDef {
   id: string;
   title: string;
   body: string;
-  media: string;
   icon: ReactNode;
   cta: string;
 }
@@ -77,7 +54,6 @@ interface FeatureDef {
 interface SpotlightDef {
   title: string;
   body: string;
-  media: string;
   ctaLabel: string;
   ctaTarget: string;
 }
@@ -86,7 +62,6 @@ interface CategoryDef {
   id: CategoryId;
   title: string;
   subtitle: string;
-  heroImage: string;
   primaryCta: { label: string; target: string };
   metrics: MetricDef[];
   features: FeatureDef[];
@@ -101,15 +76,14 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
   cost: {
     id: 'cost',
     title: 'Cost',
-    subtitle: 'Understand the true cost of every model, trace, and invoice.',
-    heroImage: costHeroImg,
+    subtitle: 'See which workloads, models, and teams drive token spend.',
     primaryCta: { label: 'Cost by model', target: 'cost-by-model' },
     metrics: [
       {
         id: 'under-management',
         icon: <CircleDollarSign aria-hidden />,
         label: 'AI Spend Under Management',
-        value: '$12.4M',
+        value: '$1.15M',
         caption: (
           <>
             <ChangePositive>↓ 18%</ChangePositive>
@@ -121,15 +95,15 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'spend-month',
         icon: <CircleDollarSign aria-hidden />,
         label: 'Spend this month',
-        value: '$394,000',
-        caption: 'Aug 1–11 · all models',
+        value: '$1.15M',
+        caption: 'Quality inspection · Super agent · Claims · Coding',
       },
       {
-        id: 'cost-per-million',
+        id: 'cost-per-chat',
         icon: <SlidersHorizontal aria-hidden />,
-        label: 'Cost per 1M tokens',
-        value: '$9.91',
-        caption: '39.8B tokens',
+        label: 'Cost / chat',
+        value: '$0.24',
+        caption: 'Starting · down to $0.06 optimized',
       },
       {
         id: 'unreconciled',
@@ -144,7 +118,6 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'cost-by-model',
         title: 'Cost by model',
         body: 'Compare spend, share, and unit cost across every model in your fleet.',
-        media: costByModelImg,
         icon: <CircleDollarSign aria-hidden />,
         cta: 'Open',
       },
@@ -152,7 +125,6 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'cost-by-trace',
         title: 'Cost by trace',
         body: 'Attribute tokens and dollars to workflows, agents, and business outcomes.',
-        media: costByTraceImg,
         icon: <Layers aria-hidden />,
         cta: 'Open',
       },
@@ -160,7 +132,6 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'invoice-reconciliation',
         title: 'Invoice reconciliation',
         body: 'Match provider invoices to observed usage and surface variances early.',
-        media: invoiceReconciliationImg,
         icon: <FileSpreadsheet aria-hidden />,
         cta: 'Open',
       },
@@ -168,15 +139,13 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'pricing-and-rates',
         title: 'Pricing and rates',
         body: 'Keep published rates, negotiated discounts, and self-host costs aligned.',
-        media: pricingAndRatesImg,
         icon: <TrendingUp aria-hidden />,
         cta: 'Open',
       },
     ],
     spotlight: {
-      title: 'AI Economics in Motion',
-      body: 'Turn every request into measurable spend insight — across providers, models, and traces.',
-      media: costHeroImg,
+      title: 'Inspect token economics',
+      body: 'Quality inspection, Super agent, Claims, and Coding — cloud tokens plus owned infrastructure.',
       ctaLabel: 'Cost by trace',
       ctaTarget: 'cost-by-trace',
     },
@@ -184,15 +153,14 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
   optimization: {
     id: 'optimization',
     title: 'Optimization',
-    subtitle: 'Route, cache, and right-size every request for cost and performance.',
-    heroImage: optimizationHeroImg,
+    subtitle: 'Use the right model at quality, cut waste, and run on the right infrastructure.',
     primaryCta: { label: 'Intelligent routing', target: 'intelligent-routing' },
     metrics: [
       {
         id: 'impact',
         icon: <SlidersHorizontal aria-hidden />,
         label: 'Optimization Impact',
-        value: '36%',
+        value: '59%',
         caption: (
           <>
             <ChangePositive>↑ 12 pp</ChangePositive>
@@ -204,7 +172,7 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'savings',
         icon: <CircleDollarSign aria-hidden />,
         label: 'Estimated Savings',
-        value: '$2.8M',
+        value: '$675K',
         caption: (
           <>
             <ChangePositive>↑ 67%</ChangePositive>
@@ -217,71 +185,57 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         icon: <RefreshCw aria-hidden />,
         label: 'Cache hit rate',
         value: '62%',
-        caption: 'Prompt + semantic cache',
+        caption: 'Repeated inspection prompts',
       },
       {
         id: 'routed',
         icon: <GitBranch aria-hidden />,
         label: 'Routed requests',
-        value: '1.2B',
-        caption: 'Month to date',
+        value: '1.0M',
+        caption: PRIMARY_ROUTING_SCENARIO,
       },
     ],
     features: [
       {
         id: 'intelligent-routing',
         title: 'Intelligent routing',
-        body: 'Automatically select the best model, provider, and infrastructure per request.',
-        media: intelligentRoutingImg,
+        body: 'Monitor policy health, manage routing policies on the same page, and Test a Prompt.',
         icon: <GitBranch aria-hidden />,
-        cta: 'Open',
-      },
-      {
-        id: 'routing-rules',
-        title: 'Routing rules',
-        body: 'Define intent, latency, and cost policies that steer traffic across your fleet.',
-        media: routingRulesImg,
-        icon: <SlidersHorizontal aria-hidden />,
         cta: 'Open',
       },
       {
         id: 'model-analyzer',
         title: 'Model analyzer',
-        body: 'Score quality, cost, and latency tradeoffs before you change the default path.',
-        media: modelAnalyzerImg,
+        body: 'Compare cost of keeping quality while stepping off the highest-priced starting route.',
         icon: <TrendingUp aria-hidden />,
         cta: 'Open',
       },
       {
         id: 'caching',
         title: 'Caching',
-        body: 'Reuse prompts and embeddings to cut spend without changing the experience.',
-        media: cachingImg,
+        body: 'Reuse repeated inspection prompts to cut waste without changing quality outcomes.',
         icon: <RefreshCw aria-hidden />,
         cta: 'Open',
       },
       {
         id: 'energy',
         title: 'Energy',
-        body: 'Track power draw and carbon alongside tokens so efficiency stays visible.',
-        media: energyImg,
+        body: 'Track power draw on owned H100 / H200 capacity alongside token spend.',
         icon: <Zap aria-hidden />,
         cta: 'Open',
       },
     ],
     spotlight: {
-      title: 'Orchestrate for savings',
-      body: 'TokenOps Center picks the right combination of model, provider, and infrastructure for every workload.',
-      media: optimizationHeroImg,
-      ctaLabel: 'Routing rules',
-      ctaTarget: 'routing-rules',
+      title: PRIMARY_POLICY_NAME,
+      body: 'Cost, quality, and latency set priorities. Security and residency remain hard constraints.',
+      ctaLabel: 'Intelligent routing',
+      ctaTarget: 'intelligent-routing',
     },
   },
   operations: {
     id: 'operations',
     title: 'Operations',
-    subtitle: 'Run models, GPUs, and deployments from a single command center.',
-    heroImage: operationsHeroImg,
+    subtitle: 'Run models, GPUs, and deployments for production workloads.',
     primaryCta: { label: 'GPU fleet', target: 'gpu-fleet' },
     metrics: [
       {
@@ -323,7 +277,6 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'model-registry',
         title: 'Model registry',
         body: 'Catalog every model, version, and capability your organization can call.',
-        media: modelRegistryImg,
         icon: <Compass aria-hidden />,
         cta: 'Open',
       },
@@ -331,7 +284,6 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'model-deployments',
         title: 'Model deployments',
         body: 'See what is live, where it runs, and how capacity is allocated.',
-        media: modelDeploymentsImg,
         icon: <Cpu aria-hidden />,
         cta: 'Open',
       },
@@ -339,7 +291,6 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'gpu-fleet',
         title: 'GPU fleet',
         body: 'Monitor utilization, idle time, and health across your accelerator estate.',
-        media: gpuFleetImg,
         icon: <MemoryStick aria-hidden />,
         cta: 'Open',
       },
@@ -347,15 +298,13 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'gpu-registry',
         title: 'GPU registry',
         body: 'Inventory hardware, regions, and ownership so capacity stays accountable.',
-        media: gpuRegistryImg,
         icon: <Layers aria-hidden />,
         cta: 'Open',
       },
     ],
     spotlight: {
-      title: 'Operate with confidence',
-      body: 'Monitor AI systems, infrastructure, and workloads without leaving TokenOps Center.',
-      media: operationsHeroImg,
+      title: 'Operate the fleet',
+      body: 'Monitor models, infrastructure, and capacity without leaving TokenOps Center.',
       ctaLabel: 'Model registry',
       ctaTarget: 'model-registry',
     },
@@ -363,8 +312,7 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
   alerts: {
     id: 'alerts',
     title: 'Alerts',
-    subtitle: 'Forecast risk, catch spend spikes, and act before they hit the business.',
-    heroImage: alertsHeroImg,
+    subtitle: 'Catch spend spikes and capacity risk before they hit the business.',
     primaryCta: { label: 'Alert list', target: 'alert-list' },
     metrics: [
       {
@@ -379,7 +327,7 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         icon: <Bell aria-hidden />,
         label: 'Open alerts',
         value: '1',
-        caption: 'Spend spike · Frontier-L',
+        caption: 'Spend spike · Claude Sonnet 4.6',
       },
       {
         id: 'rules',
@@ -401,7 +349,6 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'alert-list',
         title: 'Alerts',
         body: 'Triage open incidents, acknowledge owners, and track resolution status.',
-        media: alertListImg,
         icon: <Bell aria-hidden />,
         cta: 'Open',
       },
@@ -409,15 +356,13 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'alert-rules',
         title: 'Alert rules',
         body: 'Define thresholds for spend, latency, capacity, and routing anomalies.',
-        media: alertRulesImg,
         icon: <Shield aria-hidden />,
         cta: 'Open',
       },
     ],
     spotlight: {
-      title: 'Predict before impact',
-      body: 'Forecast costs, capacity needs, and demand so alerts fire on signal — not noise.',
-      media: alertsHeroImg,
+      title: 'Act on signal',
+      body: 'Forecast costs and capacity so alerts fire on risk — not noise.',
       ctaLabel: 'Alert rules',
       ctaTarget: 'alert-rules',
     },
@@ -426,36 +371,35 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
     id: 'administration',
     title: 'Administration',
     subtitle: 'Connect providers, manage keys, and enforce quotas across TokenOps Center.',
-    heroImage: administrationHeroImg,
     primaryCta: { label: 'Connections', target: 'connections' },
     metrics: [
       {
         id: 'connections',
         icon: <Plug aria-hidden />,
         label: 'Connections',
-        value: '8',
-        caption: 'All healthy',
+        value: '4',
+        caption: '3 healthy · 1 needs attention',
       },
       {
         id: 'keys',
         icon: <KeyRound aria-hidden />,
         label: 'Access keys',
-        value: '14',
-        caption: '2 expiring soon',
+        value: '4',
+        caption: '1 expiring soon · 1 revoked',
       },
       {
         id: 'quotas',
         icon: <Link2 aria-hidden />,
         label: 'Quotas enforced',
         value: '6',
-        caption: 'Org + team scopes',
+        caption: '2 near limit · 1 exceeded',
       },
       {
         id: 'sync',
         icon: <RefreshCw aria-hidden />,
         label: 'Last sync',
-        value: '2m',
-        caption: 'Providers + rates',
+        value: '4m',
+        caption: 'Brightsky Airlines · sample data',
       },
     ],
     features: [
@@ -463,7 +407,6 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'connections',
         title: 'Connections',
         body: 'Link cloud providers, self-hosted endpoints, and billing sources.',
-        media: connectionsImg,
         icon: <Plug aria-hidden />,
         cta: 'Open',
       },
@@ -471,7 +414,6 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'access-keys',
         title: 'Access keys',
         body: 'Issue, rotate, and revoke keys used by apps and automation.',
-        media: accessKeysImg,
         icon: <KeyRound aria-hidden />,
         cta: 'Open',
       },
@@ -479,15 +421,13 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'quotas',
         title: 'Quotas',
         body: 'Cap spend and throughput by org, team, or workload before overruns.',
-        media: quotasImg,
         icon: <Link2 aria-hidden />,
         cta: 'Open',
       },
     ],
     spotlight: {
-      title: 'Govern the platform',
-      body: 'Keep connections, credentials, and limits aligned so every team can build safely.',
-      media: administrationHeroImg,
+      title: 'Govern access',
+      body: 'Keep connections, credentials, and limits aligned across teams.',
       ctaLabel: 'Access keys',
       ctaTarget: 'access-keys',
     },
@@ -504,185 +444,116 @@ const Page = styled.div`
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--space-300);
-  padding: var(--space-500) var(--space-800) var(--space-800);
+  gap: var(--space-200);
+  padding: var(--space-400) var(--space-600) var(--space-600);
   container-type: inline-size;
   container-name: category;
 
   @media (max-width: 900px) {
-    padding: var(--space-500);
+    padding: var(--space-400);
   }
 `;
 
-const OverviewCard = styled(Card)`
-  display: flex;
-  flex-direction: column;
+const HeaderCard = styled(Card)`
+  box-sizing: border-box;
+  width: 100%;
   min-width: 0;
+  background-image: linear-gradient(8deg, rgb(21, 47, 197) 14%, rgb(160, 120, 255) 87%);
 `;
 
-const Hero = styled.div`
-  position: relative;
+const HeaderInner = styled.div`
+  box-sizing: border-box;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--space-500);
-  min-height: 200px;
+  gap: var(--space-400);
   padding: var(--space-500);
-  overflow: hidden;
+  min-width: 0;
 
-  @media (max-width: 720px) {
+  @container category (max-width: 720px) {
     flex-direction: column;
     align-items: stretch;
-    justify-content: flex-end;
-    gap: var(--space-400);
   }
 `;
 
-const HeroImage = styled.img`
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-`;
-
-const HeroScrim = styled.div`
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  /*
-    Matches Dashboard hero: primary → translucent indigo → clear.
-    Stops match Figma; not available as tokens.
-  */
-  background-image: linear-gradient(
-    90deg,
-    rgb(48, 73, 235) 0%,
-    rgba(48, 73, 235, 0.9) 29.567%,
-    rgba(0, 26, 152, 0.8) 59.135%,
-    rgba(0, 0, 0, 0) 100%
-  );
-`;
-
-const HeroCopy = styled.div`
-  position: relative;
-  z-index: 1;
+const HeaderCopy = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   gap: var(--space-100);
-  justify-content: flex-end;
   min-width: 0;
 `;
 
-const HeroTitle = styled.h1`
+const HeaderTitle = styled.h1`
   margin: 0;
-  color: var(--color-text-icon-inverse);
-  font-size: var(--type-size-hero);
+  color: var(--color-text-icon-on-primary);
+  font-size: var(--type-size-page);
   font-weight: var(--font-weight-bold);
   line-height: 1.35;
-  letter-spacing: -0.6px;
 `;
 
-const HeroSubtitle = styled.p`
+const HeaderSubtitle = styled.p`
   margin: 0;
-  max-width: 36rem;
-  color: var(--color-text-icon-inverse);
-  font-size: var(--type-size-title);
+  max-width: 40rem;
+  color: var(--color-text-icon-on-secondary);
+  font-size: var(--type-size-body);
   font-weight: var(--font-weight-regular);
   line-height: 1.35;
-  letter-spacing: 0.4px;
 `;
 
-const HeroActions = styled.div`
-  position: relative;
-  z-index: 1;
+const HeaderActions = styled.div`
   flex: 0 0 auto;
 `;
 
-const MetricsBand = styled.div`
+const MetricGrid = styled.div`
   box-sizing: border-box;
-  /*
-    Generous bottom inset so KPI card shadows clear the OverviewCard
-    clip edge (cake& Card overflows hidden for media bleed).
-  */
-  padding: var(--space-500) 0 var(--space-700);
-`;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-200);
+  width: 100%;
+  min-width: 0;
 
-const MetricsScroller = styled.div`
-  display: flex;
-  gap: var(--space-300);
-  /*
-    Vertical padding keeps elevation-2 inside the scrollport.
-    overflow-x:auto makes overflow-y compute to auto, which otherwise
-    clips shadows flush against the card edge.
-  */
-  padding: var(--space-300) var(--space-500) var(--space-400);
-  overflow-x: auto;
-  scrollbar-width: thin;
-
-  @media (max-width: 720px) {
-    display: grid;
+  @container category (max-width: 900px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    overflow-x: visible;
   }
 
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
+  @container category (max-width: 480px) {
+    grid-template-columns: minmax(0, 1fr);
   }
 `;
 
 const MetricCard = styled(Card)`
-  flex: 0 0 200px;
-  min-width: 200px;
-  border-radius: var(--radius-300);
-  box-shadow: var(--elevation-2);
-
-  @media (max-width: 720px) {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
+  min-width: 0;
 `;
 
 const MetricInner = styled.div`
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--space-300);
-  height: 100%;
-  padding: var(--space-500);
-`;
-
-const MetricTop = styled.div`
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: var(--space-100);
-  min-height: 0;
+  gap: var(--space-050);
+  padding: var(--space-300) var(--space-400);
 `;
 
 const MetricIcon = styled.div`
   display: flex;
-  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  color: var(--color-text-icon-primary);
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-icon-secondary);
 
   svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
   }
 `;
 
 const MetricLabel = styled.p`
   margin: 0;
   color: var(--color-text-icon-secondary);
-  font-size: var(--type-size-body);
-  font-weight: var(--font-weight-regular);
+  font-size: var(--type-size-caption);
+  font-weight: var(--font-weight-medium);
   line-height: 1.35;
-  letter-spacing: 0.2px;
 `;
 
 const MetricValue = styled.p`
@@ -702,73 +573,23 @@ const MetricCaption = styled.div`
   font-size: var(--type-size-caption);
   font-weight: var(--font-weight-regular);
   line-height: 1.35;
-  letter-spacing: 0.2px;
 `;
 
-const FeatureGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-300);
-
-  @container category (max-width: 720px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const FeatureCard = styled(Card)`
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-`;
-
-const FeatureMedia = styled.img`
-  display: block;
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-`;
-
-const FeatureBody = styled.div`
+const SectionCard = styled(Card)`
   box-sizing: border-box;
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: var(--space-300);
-  min-height: 0;
-  padding: var(--space-500);
+  width: 100%;
+  min-width: 0;
 `;
 
-const FeatureCopy = styled.div`
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: var(--space-300);
-  min-height: 0;
-`;
-
-const FeatureIntro = styled.div`
+const SectionInner = styled.div`
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: var(--space-200);
+  padding: var(--space-400);
 `;
 
-const FeatureIcon = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  color: var(--color-text-icon-primary);
-
-  svg {
-    width: 24px;
-    height: 24px;
-  }
-`;
-
-const FeatureTitle = styled.h2`
+const SectionTitle = styled.h2`
   margin: 0;
   color: var(--color-text-icon-primary);
   font-size: var(--type-size-subtitle);
@@ -776,89 +597,119 @@ const FeatureTitle = styled.h2`
   line-height: 1.35;
 `;
 
-const FeatureText = styled.p`
+const ActionList = styled.ul`
+  list-style: none;
   margin: 0;
-  color: var(--color-text-icon-secondary);
-  font-size: var(--type-size-body);
-  font-weight: var(--font-weight-regular);
-  line-height: 1.35;
-  letter-spacing: 0.2px;
-`;
-
-const SpotlightCard = styled(Card)`
-  position: relative;
-  min-width: 0;
-  min-height: 280px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border: var(--stroke-100) solid var(--color-stroke-border);
+  border-radius: var(--radius-200);
   overflow: hidden;
-  /*
-    Same multi-stop indigo underlay as Home economics / hero cards.
-  */
-  background-image: linear-gradient(
-    126deg,
-    rgb(4, 27, 149) 2.5%,
-    rgb(21, 49, 198) 41.6%,
-    rgb(83, 103, 246) 41%,
-    rgb(89, 177, 255) 79%
-  );
 `;
 
-const SpotlightMedia = styled.div`
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 280px;
-  height: 100%;
-`;
-
-const SpotlightImage = styled.img`
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-`;
-
-const SpotlightScrim = styled.div`
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: linear-gradient(
-    180deg,
-    rgba(117, 134, 255, 0) 0%,
-    rgba(0, 26, 152, 0.6) 70%,
-    rgba(0, 26, 152, 0.8) 100%
-  );
-`;
-
-const SpotlightCopy = styled.div`
-  position: relative;
-  z-index: 1;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+const ActionRow = styled.li`
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: var(--space-300);
-  align-items: flex-start;
-  max-width: 40rem;
-  padding: var(--space-800) var(--space-500);
+  align-items: center;
+  padding: var(--space-300) var(--space-400);
+  border-bottom: var(--stroke-100) solid var(--color-stroke-border-low);
+  background: var(--color-surfaces-container);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  @container category (max-width: 640px) {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
 `;
 
-const SpotlightTitle = styled.h2`
-  margin: 0;
-  color: var(--color-text-icon-inverse);
-  font-size: var(--type-size-title);
+const ActionIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-700);
+  height: var(--space-700);
+  border-radius: var(--radius-100);
+  background: var(--color-surfaces-canvas);
+  color: var(--color-text-icon-primary);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+`;
+
+const ActionCopy = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-025);
+  min-width: 0;
+`;
+
+const ActionTitle = styled.span`
+  color: var(--color-text-icon-primary);
+  font-size: var(--type-size-body);
   font-weight: var(--font-weight-bold);
   line-height: 1.35;
 `;
 
-const SpotlightBody = styled.p`
-  margin: 0;
-  color: var(--color-text-icon-inverse);
-  font-size: var(--type-size-subject);
+const ActionBody = styled.span`
+  color: var(--color-text-icon-secondary);
+  font-size: var(--type-size-caption);
   font-weight: var(--font-weight-regular);
   line-height: 1.35;
-  letter-spacing: 0.2px;
+`;
+
+const ActionCta = styled.div`
+  flex: 0 0 auto;
+
+  @container category (max-width: 640px) {
+    grid-column: 2;
+  }
+`;
+
+const Callout = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-400);
+  padding: var(--space-400);
+  border: var(--stroke-100) solid var(--color-stroke-border);
+  border-radius: var(--radius-200);
+  background: var(--color-surfaces-canvas);
+
+  @container category (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+const CalloutCopy = styled.div`
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-050);
+  min-width: 0;
+`;
+
+const CalloutTitle = styled.h2`
+  margin: 0;
+  color: var(--color-text-icon-primary);
+  font-size: var(--type-size-body);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.35;
+`;
+
+const CalloutBody = styled.p`
+  margin: 0;
+  color: var(--color-text-icon-secondary);
+  font-size: var(--type-size-caption);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.35;
 `;
 
 export function isCategoryLanding(section: string): section is CategoryId {
@@ -872,58 +723,52 @@ export function CategoryLanding({ category, onNavigate }: CategoryLandingProps) 
   return (
     <PageScroll>
       <Page>
-        <OverviewCard role="region" aria-label={`${def.title} overview`}>
-          <Hero>
-            <HeroImage src={def.heroImage} alt="" />
-            <HeroScrim />
-            <HeroCopy>
-              <HeroTitle>{def.title}</HeroTitle>
-              <HeroSubtitle>{def.subtitle}</HeroSubtitle>
-            </HeroCopy>
-            <HeroActions>
+        <HeaderCard role="region" aria-label={`${def.title} overview`}>
+          <HeaderInner>
+            <HeaderCopy>
+              <HeaderTitle>{def.title}</HeaderTitle>
+              <HeaderSubtitle>{def.subtitle}</HeaderSubtitle>
+            </HeaderCopy>
+            <HeaderActions>
               <Button
-                size="lg"
+                size="md"
                 intent="secondary"
                 endIcon={<ArrowRight aria-hidden />}
                 onClick={go(def.primaryCta.target)}
               >
                 {def.primaryCta.label}
               </Button>
-            </HeroActions>
-          </Hero>
+            </HeaderActions>
+          </HeaderInner>
+        </HeaderCard>
 
-          <MetricsBand>
-            <MetricsScroller>
-              {def.metrics.map((metric) => (
-                <MetricCard key={metric.id}>
-                  <MetricInner>
-                    <MetricTop>
-                      <MetricIcon>{metric.icon}</MetricIcon>
-                      <MetricLabel>{metric.label}</MetricLabel>
-                      <MetricValue>{metric.value}</MetricValue>
-                    </MetricTop>
-                    <MetricCaption>
-                      {typeof metric.caption === 'string' ? metric.caption : metric.caption}
-                    </MetricCaption>
-                  </MetricInner>
-                </MetricCard>
-              ))}
-            </MetricsScroller>
-          </MetricsBand>
-        </OverviewCard>
+        <MetricGrid role="region" aria-label={`${def.title} metrics`}>
+          {def.metrics.map((metric) => (
+            <MetricCard key={metric.id}>
+              <MetricInner>
+                <MetricIcon>{metric.icon}</MetricIcon>
+                <MetricLabel>{metric.label}</MetricLabel>
+                <MetricValue>{metric.value}</MetricValue>
+                <MetricCaption>
+                  {typeof metric.caption === 'string' ? metric.caption : metric.caption}
+                </MetricCaption>
+              </MetricInner>
+            </MetricCard>
+          ))}
+        </MetricGrid>
 
-        <FeatureGrid role="region" aria-label={`${def.title} features`}>
-          {def.features.map((feature) => (
-            <FeatureCard key={feature.id}>
-              <FeatureMedia src={feature.media} alt="" />
-              <FeatureBody>
-                <FeatureIcon>{feature.icon}</FeatureIcon>
-                <FeatureCopy>
-                  <FeatureIntro>
-                    <FeatureTitle>{feature.title}</FeatureTitle>
-                    <FeatureText>{feature.body}</FeatureText>
-                  </FeatureIntro>
-                  <div>
+        <SectionCard role="region" aria-label={`${def.title} views`}>
+          <SectionInner>
+            <SectionTitle>Views</SectionTitle>
+            <ActionList>
+              {def.features.map((feature) => (
+                <ActionRow key={feature.id}>
+                  <ActionIcon aria-hidden>{feature.icon}</ActionIcon>
+                  <ActionCopy>
+                    <ActionTitle>{feature.title}</ActionTitle>
+                    <ActionBody>{feature.body}</ActionBody>
+                  </ActionCopy>
+                  <ActionCta>
                     <Button
                       size="sm"
                       endIcon={<SquareArrowOutUpRight aria-hidden />}
@@ -931,31 +776,28 @@ export function CategoryLanding({ category, onNavigate }: CategoryLandingProps) 
                     >
                       {feature.cta}
                     </Button>
-                  </div>
-                </FeatureCopy>
-              </FeatureBody>
-            </FeatureCard>
-          ))}
-        </FeatureGrid>
+                  </ActionCta>
+                </ActionRow>
+              ))}
+            </ActionList>
+          </SectionInner>
+        </SectionCard>
 
-        <SpotlightCard role="region" aria-label={def.spotlight.title}>
-          <SpotlightMedia>
-            <SpotlightImage src={def.spotlight.media} alt="" />
-            <SpotlightScrim />
-            <SpotlightCopy>
-              <SpotlightTitle>{def.spotlight.title}</SpotlightTitle>
-              <SpotlightBody>{def.spotlight.body}</SpotlightBody>
-              <Button
-                size="sm"
-                intent="secondary"
-                endIcon={<SquareArrowOutUpRight aria-hidden />}
-                onClick={go(def.spotlight.ctaTarget)}
-              >
-                {def.spotlight.ctaLabel}
-              </Button>
-            </SpotlightCopy>
-          </SpotlightMedia>
-        </SpotlightCard>
+        <Callout role="region" aria-label={def.spotlight.title}>
+          <CalloutCopy>
+            <CalloutTitle>{def.spotlight.title}</CalloutTitle>
+            <CalloutBody>{def.spotlight.body}</CalloutBody>
+          </CalloutCopy>
+          <Button
+            size="sm"
+            intent="primary"
+            variant="fill"
+            endIcon={<SquareArrowOutUpRight aria-hidden />}
+            onClick={go(def.spotlight.ctaTarget)}
+          >
+            {def.spotlight.ctaLabel}
+          </Button>
+        </Callout>
       </Page>
     </PageScroll>
   );

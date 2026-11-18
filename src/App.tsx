@@ -2,24 +2,44 @@ import { useState } from 'react';
 import { CakeProvider, Sidebar, SidebarContent } from '@cake-admin/cakeand';
 import styled, { createGlobalStyle } from 'styled-components';
 import backdrop from './assets/backdrop.png';
+import { AccessKeys } from './pages/AccessKeys';
 import { AlertRules } from './pages/AlertRules';
 import { Alerts } from './pages/Alerts';
 import { Caching } from './pages/Caching';
 import { CategoryLanding, isCategoryLanding } from './pages/CategoryLanding';
+import { Connections } from './pages/Connections';
 import { CostByModel } from './pages/CostByModel';
 import { CostByTrace } from './pages/CostByTrace';
 import { Dashboard } from './pages/Dashboard';
 import { Energy } from './pages/Energy';
 import { GpuFleet } from './pages/GpuFleet';
+import { GpuRegistry } from './pages/GpuRegistry';
 import { Home } from './pages/Home';
-
-import { IntelligentRouting } from './pages/IntelligentRouting';
 import { InvoiceReconciliation } from './pages/InvoiceReconciliation';
 import { ModelAnalyzer } from './pages/ModelAnalyzer';
-import { ReportPage, ReportPlaceholder } from './pages/ReportPage';
+import { ModelDeployments } from './pages/ModelDeployments';
+import { ModelRegistry } from './pages/ModelRegistry';
+import { PricingAndRates } from './pages/PricingAndRates';
+import { Quotas } from './pages/Quotas';
+import { ReportPage } from './pages/ReportPage';
+import { IntelligentRouting } from './pages/IntelligentRouting';
 import { AppSidebar } from './shell/AppSidebar';
 import { AppTopBar } from './shell/AppTopBar';
 import { navGroups } from './shell/nav';
+
+/** Legacy Routing / Routing rules ids map onto Intelligent routing. */
+function resolveNavigation(next: string): {
+  section: string;
+  focusPolicies?: boolean;
+} {
+  if (next === 'routing' || next === 'intelligent-routing') {
+    return { section: 'intelligent-routing' };
+  }
+  if (next === 'routing-rules' || next === 'routing-policies') {
+    return { section: 'intelligent-routing', focusPolicies: true };
+  }
+  return { section: next };
+}
 
 const costSections = navGroups.find((group) => group.value === 'cost')?.items ?? [];
 const optimizationSections =
@@ -56,6 +76,7 @@ const Stage = styled.div`
 `;
 
 const WindowFrame = styled.div`
+  position: relative;
   box-sizing: border-box;
   display: flex;
   width: 90%;
@@ -102,6 +123,14 @@ const Body = styled(SidebarContent)`
 
 export default function App() {
   const [section, setSection] = useState('home');
+  const [focusRoutingPolicies, setFocusRoutingPolicies] = useState(false);
+
+  function navigateTo(next: string) {
+    const resolved = resolveNavigation(next);
+    setFocusRoutingPolicies(Boolean(resolved.focusPolicies));
+    setSection(resolved.section);
+  }
+
   const isCostSection = costSections.some((item) => item.value === section);
   const isOptimizationSection = optimizationSections.some((item) => item.value === section);
   const isOperationsSection = operationsSections.some((item) => item.value === section);
@@ -112,48 +141,39 @@ export default function App() {
     <CakeProvider mode="light.a">
       <Global />
       <Stage>
-        <WindowFrame>
-          <Shell value={section} onValueChange={setSection}>
+        <WindowFrame id="app-shell">
+          <Shell value={section} onValueChange={navigateTo}>
             <AppSidebar activeSection={section} />
             <Main>
               <AppTopBar />
               <Body value={section}>
-                {section === 'home' ? <Home onNavigate={setSection} /> : null}
-                {section === 'dashboard' ? <Dashboard onNavigate={setSection} /> : null}
+                {section === 'home' ? <Home onNavigate={navigateTo} /> : null}
+                {section === 'dashboard' ? <Dashboard onNavigate={navigateTo} /> : null}
                 {isCategoryLanding(section) ? (
-                  <CategoryLanding category={section} onNavigate={setSection} />
+                  <CategoryLanding category={section} onNavigate={navigateTo} />
                 ) : null}
                 {isCostSection ? (
                   <ReportPage
                     sections={costSections}
                     section={section}
-                    onSectionChange={setSection}
+                    onSectionChange={navigateTo}
                     switcherLabel="Cost views"
                   >
                     {section === 'cost-by-model' ? <CostByModel /> : null}
                     {section === 'cost-by-trace' ? <CostByTrace /> : null}
                     {section === 'invoice-reconciliation' ? <InvoiceReconciliation /> : null}
-                    {section === 'pricing-and-rates' ? (
-                      <ReportPlaceholder
-                        title="Pricing and rates"
-                        description="Keep published rates, negotiated discounts, and self-host costs aligned."
-                      />
-                    ) : null}
+                    {section === 'pricing-and-rates' ? <PricingAndRates /> : null}
                   </ReportPage>
                 ) : null}
                 {isOptimizationSection ? (
                   <ReportPage
                     sections={optimizationSections}
                     section={section}
-                    onSectionChange={setSection}
+                    onSectionChange={navigateTo}
                     switcherLabel="Optimization views"
                   >
-                    {section === 'intelligent-routing' ? <IntelligentRouting /> : null}
-                    {section === 'routing-rules' ? (
-                      <ReportPlaceholder
-                        title="Routing rules"
-                        description="Define intent, latency, and cost policies that steer traffic across your fleet."
-                      />
+                    {section === 'intelligent-routing' ? (
+                      <IntelligentRouting focusPolicies={focusRoutingPolicies} />
                     ) : null}
                     {section === 'model-analyzer' ? <ModelAnalyzer /> : null}
                     {section === 'caching' ? <Caching /> : null}
@@ -164,35 +184,22 @@ export default function App() {
                   <ReportPage
                     sections={operationsSections}
                     section={section}
-                    onSectionChange={setSection}
+                    onSectionChange={navigateTo}
                     switcherLabel="Operations views"
                   >
                     {section === 'model-registry' ? (
-                      <ReportPlaceholder
-                        title="Model registry"
-                        description="Catalog every model, version, and capability your organization can call."
-                      />
+                      <ModelRegistry onNavigate={navigateTo} />
                     ) : null}
-                    {section === 'model-deployments' ? (
-                      <ReportPlaceholder
-                        title="Model deployments"
-                        description="See what is live, where it runs, and how capacity is allocated."
-                      />
-                    ) : null}
+                    {section === 'model-deployments' ? <ModelDeployments /> : null}
                     {section === 'gpu-fleet' ? <GpuFleet /> : null}
-                    {section === 'gpu-registry' ? (
-                      <ReportPlaceholder
-                        title="GPU registry"
-                        description="Inventory hardware, regions, and ownership so capacity stays accountable."
-                      />
-                    ) : null}
+                    {section === 'gpu-registry' ? <GpuRegistry /> : null}
                   </ReportPage>
                 ) : null}
                 {isAlertsSection ? (
                   <ReportPage
                     sections={alertsSections}
                     section={section}
-                    onSectionChange={setSection}
+                    onSectionChange={navigateTo}
                     switcherLabel="Alert views"
                   >
                     {section === 'alert-list' ? <Alerts /> : null}
@@ -203,27 +210,12 @@ export default function App() {
                   <ReportPage
                     sections={administrationSections}
                     section={section}
-                    onSectionChange={setSection}
+                    onSectionChange={navigateTo}
                     switcherLabel="Administration views"
                   >
-                    {section === 'connections' ? (
-                      <ReportPlaceholder
-                        title="Connections"
-                        description="Link cloud providers, self-hosted endpoints, and billing sources."
-                      />
-                    ) : null}
-                    {section === 'access-keys' ? (
-                      <ReportPlaceholder
-                        title="Access keys"
-                        description="Issue, rotate, and revoke keys used by apps and automation."
-                      />
-                    ) : null}
-                    {section === 'quotas' ? (
-                      <ReportPlaceholder
-                        title="Quotas"
-                        description="Cap spend and throughput by org, team, or workload before overruns."
-                      />
-                    ) : null}
+                    {section === 'connections' ? <Connections /> : null}
+                    {section === 'access-keys' ? <AccessKeys /> : null}
+                    {section === 'quotas' ? <Quotas onNavigate={navigateTo} /> : null}
                   </ReportPage>
                 ) : null}
               </Body>

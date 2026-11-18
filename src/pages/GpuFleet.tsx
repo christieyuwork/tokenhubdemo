@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Badge,
   DataRow,
   DateInput,
   HeaderRow,
@@ -15,6 +14,7 @@ import {
 } from '../charts/GpuBusyHeatmap';
 import {
   BadgeGroup,
+  CellBadge,
   CellSecondary,
   CompactDataCell,
   MetricCard,
@@ -23,6 +23,7 @@ import {
   ReportPanel,
   ReportTable,
   SortableHeaderCell,
+  ValueBadge,
   WideDataCell,
   reportCol,
   ReportFilterDropdown,
@@ -192,14 +193,6 @@ function sortValue(row: FleetRow, key: SortKey): string | number {
   }
 }
 
-function ValueBadge({ children }: { children: string }) {
-  return (
-    <Badge color="secondary" tone="subtle" dot={false}>
-      {children}
-    </Badge>
-  );
-}
-
 function formatIdleHours(value: number) {
   return value.toFixed(1);
 }
@@ -337,9 +330,9 @@ export function GpuFleet() {
               <WideDataCell>
                 {row.model && row.deployment ? (
                   <BadgeGroup>
-                    <Badge color="magenta" tone="subtle" dot={false}>
+                    <CellBadge color="magenta" tone="subtle" dot={false}>
                       {row.model}
-                    </Badge>
+                    </CellBadge>
                     <CellSecondary>{row.deployment}</CellSecondary>
                   </BadgeGroup>
                 ) : (

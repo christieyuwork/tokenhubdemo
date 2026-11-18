@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Badge,
   DataRow,
   DateInput,
   HeaderRow,
@@ -17,6 +16,7 @@ import {
   ReportPanel,
   ReportTable,
   SortableHeaderCell,
+  ValueBadge,
   reportCol,
   ReportFilterDropdown,
 } from './ReportPage';
@@ -140,14 +140,6 @@ function sortValue(row: GpuRow, key: SortKey): string | number {
   }
 }
 
-function ValueBadge({ children }: { children: string }) {
-  return (
-    <Badge color="secondary" tone="subtle" dot={false}>
-      {children}
-    </Badge>
-  );
-}
-
 function formatPowerLabel(value: number) {
   return `${value} W`;
 }
@@ -222,14 +214,10 @@ export function Energy() {
         }
       />
       <MetricGrid>
-        <MetricCard label="Cache hit rate" value="82%" caption="week of Sep 22–28" />
-        <MetricCard label="Prompt tokens reused" value="2.6B" caption="Sep 1–28" />
-        <MetricCard
-          label="GPU time saved"
-          value="410 hours"
-          caption="estimate · of 2,688 GPU hours"
-        />
-        <MetricCard label="Deployments with caching" value="2" caption="" />
+        <MetricCard label="Average GPU power" value="1.96 kW" caption="8 GPUs, GPUs only" />
+        <MetricCard label="GPU energy" value="517 kWh" caption="Aug 1–11" />
+        <MetricCard label="Busy GPU average" value="420 W" caption="GPUs 1–4" />
+        <MetricCard label="Idle GPU average" value="70 W" caption="GPUs 5–8" />
       </MetricGrid>
       <ReportPanel title="Average power per GPU (watts)">
         <StackedBarChart

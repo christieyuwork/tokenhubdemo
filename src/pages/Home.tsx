@@ -969,9 +969,9 @@ export function Home({ onNavigate }: HomeProps) {
                   size="sm"
                   variant="ghost"
                   intent="secondary"
-                  onClick={go('routing-rules')}
+                  onClick={go('routing-policies')}
                 >
-                  Routing rules
+                  Policies
                 </Button>
                 <Button
                   size="sm"

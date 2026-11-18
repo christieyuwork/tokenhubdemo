@@ -1,6 +1,5 @@
 import { Fragment, useMemo, useState } from 'react';
 import {
-  Badge,
   DataCell,
   DataRow,
   DateInput,
@@ -14,11 +13,13 @@ import {
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Copy, Search } from 'lucide-react';
 import styled from 'styled-components';
 import {
+  CellBadge,
   MetricCard,
   MetricGrid,
   ReportHeader,
   ReportPanel,
   ReportTable,
+  ValueBadge,
   reportCol,
   ReportFilterDropdown,
 } from './ReportPage';
@@ -33,20 +34,20 @@ const GRAIN_OPTIONS = [
 
 const PROVIDER_OPTIONS = [
   { value: ALL, label: 'All' },
-  { value: 'Provider A', label: 'Provider A' },
-  { value: 'Provider B', label: 'Provider B' },
-  { value: 'Self-hosted (AIC)', label: 'Self-hosted (AIC)' },
+  { value: 'Public cloud', label: 'Public cloud' },
+  { value: 'Lenovo infrastructure', label: 'Lenovo infrastructure' },
+  { value: 'In-country', label: 'In-country' },
 ];
 
 const MODEL_OPTIONS = [
   { value: ALL, label: 'All' },
-  { value: 'Frontier-L', label: 'Frontier-L' },
-  { value: 'Mid-M', label: 'Mid-M' },
-  { value: 'Small-S', label: 'Small-S' },
-  { value: 'Open-70B', label: 'Open-70B' },
+  { value: 'Claude Sonnet 4.6', label: 'Claude Sonnet 4.6' },
+  { value: 'Llama 3.3 70B', label: 'Llama 3.3 70B' },
+  { value: 'Qwen 8B', label: 'Qwen 8B' },
+  { value: 'Llama 3.1 405B', label: 'Llama 3.1 405B' },
 ];
 
-type ModelName = 'Frontier-L' | 'Mid-M' | 'Small-S' | 'Open-70B';
+type ModelName = 'Claude Sonnet 4.6' | 'Llama 3.3 70B' | 'Qwen 8B' | 'Llama 3.1 405B';
 
 interface TraceStep {
   step: number;
@@ -68,26 +69,26 @@ interface TraceRow {
 }
 
 const MODEL_BADGE: Record<ModelName, BadgeColor> = {
-  'Frontier-L': 'indigo',
-  'Mid-M': 'cyan',
-  'Small-S': 'yellow',
-  'Open-70B': 'magenta',
+  'Claude Sonnet 4.6': 'indigo',
+  'Llama 3.3 70B': 'cyan',
+  'Qwen 8B': 'yellow',
+  'Llama 3.1 405B': 'magenta',
 };
 
-/** Canonical expanded sample from Figma (CH-48213). */
+/** Canonical expanded sample — Brightsky quality-inspection trace. */
 const CH_48213_STEPS: TraceStep[] = [
-  { step: 1, name: 'Intent check', model: 'Frontier-L', inputTokens: 300, outputTokens: 15, responseSeconds: 0.8, cost: 0.006 },
-  { step: 2, name: 'Flight-status tool call', model: 'Frontier-L', inputTokens: 450, outputTokens: 30, responseSeconds: 1.1, cost: 0.009 },
-  { step: 3, name: 'Retry after timeout', model: 'Frontier-L', inputTokens: 450, outputTokens: 30, responseSeconds: 1.0, cost: 0.009 },
-  { step: 4, name: 'Safety check', model: 'Mid-M', inputTokens: 400, outputTokens: 10, responseSeconds: 0.4, cost: 0.001 },
-  { step: 5, name: 'Fare rules lookup', model: 'Frontier-L', inputTokens: 1100, outputTokens: 40, responseSeconds: 1.6, cost: 0.019 },
-  { step: 6, name: 'History replay', model: 'Frontier-L', inputTokens: 1400, outputTokens: 20, responseSeconds: 1.2, cost: 0.022 },
-  { step: 7, name: 'Rebooking options tool', model: 'Frontier-L', inputTokens: 1600, outputTokens: 30, responseSeconds: 1.5, cost: 0.026 },
-  { step: 8, name: 'Safety check', model: 'Mid-M', inputTokens: 500, outputTokens: 10, responseSeconds: 0.4, cost: 0.002 },
-  { step: 9, name: 'History replay', model: 'Frontier-L', inputTokens: 1900, outputTokens: 20, responseSeconds: 1.3, cost: 0.03 },
-  { step: 10, name: 'Draft answer', model: 'Frontier-L', inputTokens: 2000, outputTokens: 90, responseSeconds: 2.4, cost: 0.037 },
-  { step: 11, name: 'History replay', model: 'Frontier-L', inputTokens: 2300, outputTokens: 20, responseSeconds: 1.4, cost: 0.036 },
-  { step: 12, name: 'Final answer', model: 'Frontier-L', inputTokens: 2700, outputTokens: 60, responseSeconds: 2.2, cost: 0.046 },
+  { step: 1, name: 'Request analysis', model: 'Qwen 8B', inputTokens: 300, outputTokens: 15, responseSeconds: 0.8, cost: 0.006 },
+  { step: 2, name: 'Image feature extract', model: 'Llama 3.3 70B', inputTokens: 450, outputTokens: 30, responseSeconds: 1.1, cost: 0.009 },
+  { step: 3, name: 'Retry after timeout', model: 'Llama 3.3 70B', inputTokens: 450, outputTokens: 30, responseSeconds: 1.0, cost: 0.009 },
+  { step: 4, name: 'Security / PII check', model: 'Qwen 8B', inputTokens: 400, outputTokens: 10, responseSeconds: 0.4, cost: 0.001 },
+  { step: 5, name: 'Defect taxonomy lookup', model: 'Llama 3.3 70B', inputTokens: 1100, outputTokens: 40, responseSeconds: 1.6, cost: 0.019 },
+  { step: 6, name: 'History replay', model: 'Llama 3.3 70B', inputTokens: 1400, outputTokens: 20, responseSeconds: 1.2, cost: 0.022 },
+  { step: 7, name: 'Line context tool', model: 'Llama 3.3 70B', inputTokens: 1600, outputTokens: 30, responseSeconds: 1.5, cost: 0.026 },
+  { step: 8, name: 'Governance check', model: 'Qwen 8B', inputTokens: 500, outputTokens: 10, responseSeconds: 0.4, cost: 0.002 },
+  { step: 9, name: 'History replay', model: 'Llama 3.3 70B', inputTokens: 1900, outputTokens: 20, responseSeconds: 1.3, cost: 0.03 },
+  { step: 10, name: 'Draft classification', model: 'Llama 3.3 70B', inputTokens: 2000, outputTokens: 90, responseSeconds: 2.4, cost: 0.037 },
+  { step: 11, name: 'History replay', model: 'Llama 3.3 70B', inputTokens: 2300, outputTokens: 20, responseSeconds: 1.4, cost: 0.036 },
+  { step: 12, name: 'Final classification', model: 'Llama 3.3 70B', inputTokens: 2700, outputTokens: 60, responseSeconds: 2.2, cost: 0.046 },
 ];
 
 function scaleSteps(
@@ -128,7 +129,7 @@ const TRACE_ROWS: TraceRow[] = [
   {
     id: 'CH-48213',
     time: '07:41',
-    prompt: 'Is flight BS 412 still on time?',
+    prompt: 'Classify this routine quality-inspection result.',
     errors: 0,
     retries: 1,
     steps: CH_48213_STEPS,
@@ -136,7 +137,7 @@ const TRACE_ROWS: TraceRow[] = [
   {
     id: 'CH-48214',
     time: '07:42',
-    prompt: 'Can I change my seat on flight BS 412?',
+    prompt: 'Flag surface scratch severity on line B-12.',
     errors: 0,
     retries: 0,
     steps: scaleSteps(
@@ -145,55 +146,71 @@ const TRACE_ROWS: TraceRow[] = [
       9820,
       0.1688,
       [
-        'Intent check',
-        'Seat-map tool call',
-        'Fare class lookup',
-        'Safety check',
+        'Request analysis',
+        'Image feature extract',
+        'Defect taxonomy lookup',
+        'Security / PII check',
         'History replay',
-        'Seat options tool',
-        'Safety check',
-        'Draft answer',
-        'Final answer',
+        'Line context tool',
+        'Governance check',
+        'Draft classification',
+        'Final classification',
       ],
     ),
   },
   {
     id: 'CH-48219',
     time: '07:43',
-    prompt: 'I need to rebook BS 412 and keep my connection.',
+    prompt: 'Analyze complex factory-quality issue with customer lot data.',
     errors: 0,
     retries: 1,
     steps: scaleSteps(
       [
         ...CH_48213_STEPS,
-        { step: 13, name: 'Connection check', model: 'Frontier-L', inputTokens: 2100, outputTokens: 40, responseSeconds: 1.7, cost: 0.034 },
-        { step: 14, name: 'Final answer', model: 'Frontier-L', inputTokens: 2800, outputTokens: 70, responseSeconds: 2.1, cost: 0.048 },
+        {
+          step: 13,
+          name: 'Residency check',
+          model: 'Llama 3.1 405B',
+          inputTokens: 2100,
+          outputTokens: 40,
+          responseSeconds: 1.7,
+          cost: 0.034,
+        },
+        {
+          step: 14,
+          name: 'Final classification',
+          model: 'Llama 3.1 405B',
+          inputTokens: 2800,
+          outputTokens: 70,
+          responseSeconds: 2.1,
+          cost: 0.048,
+        },
       ],
       14,
       21300,
       0.412,
       [
-        'Intent check',
-        'Flight-status tool call',
+        'Request analysis',
+        'Image feature extract',
         'Retry after timeout',
-        'Safety check',
-        'Connection lookup',
+        'Security / PII check',
+        'Customer lot lookup',
         'History replay',
-        'Rebooking options tool',
-        'Safety check',
-        'Fare rules lookup',
+        'Line context tool',
+        'Governance check',
+        'Defect taxonomy lookup',
         'History replay',
-        'Draft answer',
+        'Draft classification',
         'History replay',
-        'Connection check',
-        'Final answer',
+        'Residency check',
+        'Final classification',
       ],
     ),
   },
   {
     id: 'CH-48222',
     time: '07:43',
-    prompt: 'What’s the baggage allowance on BS 412?',
+    prompt: 'Lookup defect code for SKU-8841.',
     errors: 0,
     retries: 0,
     steps: scaleSteps(
@@ -202,19 +219,19 @@ const TRACE_ROWS: TraceRow[] = [
       4950,
       0.083,
       [
-        'Intent check',
-        'Baggage-policy tool',
-        'Safety check',
+        'Request analysis',
+        'Defect code tool',
+        'Security / PII check',
         'History replay',
-        'Draft answer',
-        'Final answer',
+        'Draft classification',
+        'Final classification',
       ],
     ),
   },
   {
     id: 'CR-10031',
     time: '07:44',
-    prompt: 'Summarize yesterday’s delay notices.',
+    prompt: 'Summarize yesterday’s line B defect notices.',
     errors: 0,
     retries: 0,
     steps: scaleSteps(
@@ -222,19 +239,19 @@ const TRACE_ROWS: TraceRow[] = [
       3,
       5200,
       0.009,
-      ['Intent check', 'Notice lookup', 'Final answer'],
+      ['Request analysis', 'Notice lookup', 'Final classification'],
     ).map((step, index) =>
       index === 1
-        ? { ...step, model: 'Mid-M' as const }
+        ? { ...step, model: 'Llama 3.3 70B' as const }
         : index === 2
-          ? { ...step, model: 'Small-S' as const }
+          ? { ...step, model: 'Qwen 8B' as const }
           : step,
     ),
   },
   {
     id: 'CH-48230',
     time: '07:44',
-    prompt: 'Why was my upgrade denied on BS 412?',
+    prompt: 'Escalate ambiguous defect with production metadata.',
     errors: 1,
     retries: 1,
     steps: scaleSteps(
@@ -243,18 +260,18 @@ const TRACE_ROWS: TraceRow[] = [
       16050,
       0.251,
       [
-        'Intent check',
-        'Upgrade-status tool',
+        'Request analysis',
+        'Defect status tool',
         'Retry after error',
-        'Safety check',
-        'Fare rules lookup',
+        'Security / PII check',
+        'Defect taxonomy lookup',
         'History replay',
-        'Eligibility tool',
-        'Safety check',
+        'Escalation tool',
+        'Governance check',
         'History replay',
-        'Draft answer',
+        'Draft classification',
         'History replay',
-        'Final answer',
+        'Final classification',
       ],
     ),
   },
@@ -279,7 +296,7 @@ const ExpandPanel = styled.div`
   min-width: 0;
   padding: var(--space-300) var(--space-300) var(--space-300) var(--space-800);
   border-bottom: var(--stroke-100) solid var(--color-stroke-border-low);
-  background: var(--color-surfaces-on-container);
+  background: var(--color-surfaces-container);
 `;
 
 const ExpandTitle = styled.div`
@@ -314,6 +331,14 @@ const TotalLabel = styled.span`
   color: var(--color-text-icon-primary);
   font-size: var(--type-size-body);
   font-weight: var(--font-weight-bold);
+  line-height: 1.35;
+`;
+
+/** Plain cell text in expanded steps — no secondary/subtle pill wash. */
+const StepValue = styled.span`
+  color: var(--color-text-icon-primary);
+  font-size: var(--type-size-body);
+  font-weight: var(--font-weight-regular);
   line-height: 1.35;
 `;
 
@@ -367,13 +392,6 @@ function sortValue(
   }
 }
 
-function ValueBadge({ children }: { children: string }) {
-  return (
-    <Badge color="secondary" tone="subtle" dot={false}>
-      {children}
-    </Badge>
-  );
-}
 
 function formatTokens(value: number) {
   return value.toLocaleString('en-US');
@@ -470,7 +488,7 @@ export function CostByTrace() {
     <>
       <ReportHeader
         title="Cost by trace"
-        description="Every request, and one chat opened up call by call."
+        description="Every quality-inspection request, opened step by step with model and cost."
         filters={
           <>
             <DateInput
@@ -492,14 +510,18 @@ export function CostByTrace() {
         }
       />
       <MetricGrid>
-        <MetricCard label="Traces" value="35,000" caption="Aug 6" />
+        <MetricCard
+          label="Traces"
+          value="1.0M"
+          caption="Quality inspection"
+        />
         <MetricCard
           label="Average cost per trace"
-          value="$0.29"
-          caption="$10,000 – 35,000"
+          value="$0.24"
+          caption="Starting route · optimized $0.06"
         />
-        <MetricCard label="Calls with an error" value="0.4%" caption="of 412,000 calls" />
-        <MetricCard label="Calls retried" value="3.1%" caption="of 412,000 calls" />
+        <MetricCard label="Calls with an error" value="0.4%" caption="of routed calls" />
+        <MetricCard label="Calls retried" value="3.1%" caption="of routed calls" />
       </MetricGrid>
       <ReportPanel
         title="Traces"
@@ -640,27 +662,27 @@ export function CostByTrace() {
                         return (
                           <DataRow key={stepId} selectable={false}>
                             <DataCell>
-                              <ValueBadge>{String(step.step)}</ValueBadge>
+                              <StepValue>{String(step.step)}</StepValue>
                             </DataCell>
                             <DataCell>
-                              <ValueBadge>{step.name}</ValueBadge>
+                              <StepValue>{step.name}</StepValue>
                             </DataCell>
                             <DataCell>
-                              <Badge color={MODEL_BADGE[step.model]} tone="subtle" dot={false}>
+                              <CellBadge color={MODEL_BADGE[step.model]} tone="subtle" dot={false}>
                                 {step.model}
-                              </Badge>
+                              </CellBadge>
                             </DataCell>
                             <DataCell>
-                              <ValueBadge>{formatTokens(step.inputTokens)}</ValueBadge>
+                              <StepValue>{formatTokens(step.inputTokens)}</StepValue>
                             </DataCell>
                             <DataCell>
-                              <ValueBadge>{formatTokens(step.outputTokens)}</ValueBadge>
+                              <StepValue>{formatTokens(step.outputTokens)}</StepValue>
                             </DataCell>
                             <DataCell>
-                              <ValueBadge>{formatSeconds(step.responseSeconds)}</ValueBadge>
+                              <StepValue>{formatSeconds(step.responseSeconds)}</StepValue>
                             </DataCell>
                             <DataCell>
-                              <ValueBadge>{formatCost(step.cost)}</ValueBadge>
+                              <StepValue>{formatCost(step.cost)}</StepValue>
                             </DataCell>
                           </DataRow>
                         );
@@ -672,16 +694,16 @@ export function CostByTrace() {
                         <DataCell />
                         <DataCell />
                         <DataCell>
-                          <ValueBadge>{formatTokens(stepTotals.inputTokens)}</ValueBadge>
+                          <StepValue>{formatTokens(stepTotals.inputTokens)}</StepValue>
                         </DataCell>
                         <DataCell>
-                          <ValueBadge>{formatTokens(stepTotals.outputTokens)}</ValueBadge>
+                          <StepValue>{formatTokens(stepTotals.outputTokens)}</StepValue>
                         </DataCell>
                         <DataCell>
-                          <ValueBadge>{formatSeconds(stepTotals.responseSeconds)}</ValueBadge>
+                          <StepValue>{formatSeconds(stepTotals.responseSeconds)}</StepValue>
                         </DataCell>
                         <DataCell>
-                          <ValueBadge>{formatCost(stepTotals.cost)}</ValueBadge>
+                          <StepValue>{formatCost(stepTotals.cost)}</StepValue>
                         </DataCell>
                       </DataRow>
                     </ReportTable>

@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Badge,
   DataRow,
   DateInput,
   HeaderRow,
@@ -12,6 +11,7 @@ import { ArrowDown, ArrowUp } from 'lucide-react';
 import styled from 'styled-components';
 import { StackedBarChart, type StackedBarSeries } from '../charts/StackedBarChart';
 import {
+  CellBadge,
   CompactDataCell,
   MetricCard,
   MetricGrid,
@@ -19,6 +19,7 @@ import {
   ReportPanel,
   ReportTable,
   SortableHeaderCell,
+  ValueBadge,
   WideDataCell,
   reportCol,
   ReportFilterDropdown,
@@ -48,10 +49,10 @@ interface ModelSeries {
 }
 
 const MODEL_SERIES: ModelSeries[] = [
-  { name: 'Frontier-L', color: '#7586ff', emphasisColor: '#6776ee', share: 0.875 },
-  { name: 'Mid-M', color: '#00bbdf', emphasisColor: '#00aacb', share: 0.08 },
-  { name: 'Small-S', color: '#e2c600', emphasisColor: '#d0b600', share: 0.04 },
-  { name: 'Open-70B', color: '#f65396', emphasisColor: '#e24c8a', share: 0.005 },
+  { name: 'Claude Sonnet 4.6', color: '#7586ff', emphasisColor: '#6776ee', share: 0.52 },
+  { name: 'Llama 3.3 70B', color: '#00bbdf', emphasisColor: '#00aacb', share: 0.18 },
+  { name: 'Llama 3.1 405B', color: '#f65396', emphasisColor: '#e24c8a', share: 0.22 },
+  { name: 'Coding + ThinkStation PGX', color: '#e2c600', emphasisColor: '#d0b600', share: 0.08 },
 ];
 
 interface ModelRow {
@@ -70,66 +71,66 @@ interface ModelRow {
 
 const MODEL_ROWS: ModelRow[] = [
   {
-    id: 'frontier-l',
-    model: 'Frontier-L',
+    id: 'claude-sonnet',
+    model: 'Claude Sonnet 4.6',
     badge: 'indigo',
-    provider: 'Provider A',
-    inputTokens: '18.57B',
-    cachedTokens: '1.61B',
-    outputTokens: '0.50B',
-    requests: '9.67M',
-    cost: '$340,000',
-    costValue: 340000,
-    perMillion: '$16.44',
+    provider: 'Public cloud',
+    inputTokens: '28.0B',
+    cachedTokens: '2.1B',
+    outputTokens: '0.80B',
+    requests: '1.50M',
+    cost: '$780,000',
+    costValue: 780000,
+    perMillion: '$25.32',
   },
   {
-    id: 'mid-m',
-    model: 'Mid-M',
-    badge: 'cyan',
-    provider: 'Provider B',
-    inputTokens: '8.74B',
-    cachedTokens: '0.76B',
-    outputTokens: '0.23B',
-    requests: '1.93M',
-    cost: '$32,000',
-    costValue: 32000,
-    perMillion: '$3.29',
-  },
-  {
-    id: 'small-s',
-    model: 'Small-S',
-    badge: 'yellow',
-    provider: 'Provider B',
-    inputTokens: '5.26B',
-    cachedTokens: '0.46B',
-    outputTokens: '0.14B',
-    requests: '0.60M',
-    cost: '$15,700',
-    costValue: 15700,
-    perMillion: '$2.68',
-  },
-  {
-    id: 'open-70b',
-    model: 'Open-70B',
+    id: 'llama-405b',
+    model: 'Llama 3.1 405B Instruct',
     badge: 'magenta',
-    provider: 'Self-hosted (AIC)',
-    inputTokens: '3.42B',
-    cachedTokens: '0.00B',
-    outputTokens: '0.08B',
-    requests: '0.40M',
-    cost: '$6,300',
-    costValue: 6300,
-    perMillion: '$1.80',
+    provider: 'Lenovo / in-country',
+    inputTokens: '18.0B',
+    cachedTokens: '1.2B',
+    outputTokens: '0.45B',
+    requests: '0.60M',
+    cost: '$262,000',
+    costValue: 262000,
+    perMillion: '$13.30',
+  },
+  {
+    id: 'llama-70b',
+    model: 'Llama 3.3 70B Instruct',
+    badge: 'cyan',
+    provider: 'Lenovo infrastructure',
+    inputTokens: '12.0B',
+    cachedTokens: '3.4B',
+    outputTokens: '0.30B',
+    requests: '1.00M',
+    cost: '$60,000',
+    costValue: 60000,
+    perMillion: '$3.82',
+  },
+  {
+    id: 'coding-pgx',
+    model: 'Coding agent + ThinkStation PGX',
+    badge: 'yellow',
+    provider: 'Public cloud + ThinkStation PGX',
+    inputTokens: '4.2B',
+    cachedTokens: '0.40B',
+    outputTokens: '0.20B',
+    requests: '0.25M',
+    cost: '$154,000',
+    costValue: 154000,
+    perMillion: '$34.22',
   },
 ];
 
 const TOTAL = {
-  inputTokens: '35.99B',
-  cachedTokens: '2.83B',
-  outputTokens: '0.95B',
-  requests: '12.60M',
-  cost: '$394,000',
-  perMillion: '$9.91',
+  inputTokens: '62.2B',
+  cachedTokens: '7.1B',
+  outputTokens: '1.75B',
+  requests: '3.35M',
+  cost: '$1,156,000',
+  perMillion: '$16.30',
 };
 
 const ALL = 'all';
@@ -142,9 +143,10 @@ const GRAIN_OPTIONS = [
 
 const PROVIDER_OPTIONS = [
   { value: ALL, label: 'All' },
-  { value: 'Provider A', label: 'Provider A' },
-  { value: 'Provider B', label: 'Provider B' },
-  { value: 'Self-hosted (AIC)', label: 'Self-hosted (AIC)' },
+  { value: 'Public cloud', label: 'Public cloud' },
+  { value: 'Lenovo infrastructure', label: 'Lenovo infrastructure' },
+  { value: 'Lenovo / in-country', label: 'Lenovo / in-country' },
+  { value: 'Public cloud + ThinkStation PGX', label: 'Public cloud + ThinkStation PGX' },
 ];
 
 const MODEL_OPTIONS = [
@@ -213,14 +215,6 @@ function sortValue(row: ModelRow, key: SortKey): string | number {
     case 'perMillion':
       return metricValue(row.perMillion);
   }
-}
-
-function ValueBadge({ children }: { children: string }) {
-  return (
-    <Badge color="secondary" tone="subtle" dot={false}>
-      {children}
-    </Badge>
-  );
 }
 
 export function CostByModel() {
@@ -301,10 +295,14 @@ export function CostByModel() {
         }
       />
       <MetricGrid>
-        <MetricCard label="Total cost" value="$394,000" caption="Aug 1–11 · all models" />
-        <MetricCard label="Total tokens" value="39.8B" caption="input, cached and output" />
-        <MetricCard label="Requests" value="12.6M" caption="all models" />
-        <MetricCard label="Cost per 1M tokens" value="$9.91" caption="blended" />
+        <MetricCard label="Total cost" value="$1.16M" caption="all workloads" />
+        <MetricCard label="Total tokens" value="71.0B" caption="input, cached and output" />
+        <MetricCard label="Requests" value="3.35M" caption="all models" />
+        <MetricCard
+          label="Cost / chat"
+          value="$0.24"
+          caption="Starting $0.24 · optimized $0.06"
+        />
       </MetricGrid>
       <ReportPanel title="Daily cost by model ($ thousands)">
         <StackedBarChart
@@ -368,9 +366,9 @@ export function CostByModel() {
           {rows.map((row) => (
             <DataRow key={row.id} selectable={false}>
               <CompactDataCell>
-                <Badge color={row.badge} tone="subtle" dot={false}>
+                <CellBadge color={row.badge} tone="subtle" dot={false}>
                   {row.model}
-                </Badge>
+                </CellBadge>
               </CompactDataCell>
               <WideDataCell>
                 <ValueBadge>{row.provider}</ValueBadge>

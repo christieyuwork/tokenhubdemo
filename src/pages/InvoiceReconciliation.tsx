@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Badge,
   DataRow,
   DateInput,
   HeaderCell,
@@ -14,6 +13,7 @@ import styled from 'styled-components';
 import { StackedBarChart, type StackedBarSeries } from '../charts/StackedBarChart';
 import {
   BadgeGroup,
+  CellBadge,
   CompactDataCell,
   MetricCard,
   MetricGrid,
@@ -21,6 +21,7 @@ import {
   ReportPanel,
   ReportTable,
   SortableHeaderCell,
+  ValueBadge,
   WideDataCell,
   reportCol,
   ReportFilterDropdown,
@@ -118,14 +119,6 @@ const SORT_COLUMNS: { key: SortKey; label: string; wide?: boolean }[] = [
   { key: 'difference', label: 'Difference' },
   { key: 'status', label: 'Status' },
 ];
-
-function ValueBadge({ children }: { children: string }) {
-  return (
-    <Badge color="secondary" tone="subtle" dot={false}>
-      {children}
-    </Badge>
-  );
-}
 
 function formatMoney(value: number, signed = false) {
   const amount = Math.abs(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
@@ -284,12 +277,12 @@ export function InvoiceReconciliation() {
           value={formatMoney(totals.invoiced)}
           caption={
             <BadgeGroup>
-              <Badge color="secondary" tone="subtle" dot={false}>
+              <CellBadge color="secondary" tone="subtle" dot={false}>
                 Provider A
-              </Badge>
-              <Badge color="secondary" tone="subtle" dot={false}>
+              </CellBadge>
+              <CellBadge color="secondary" tone="subtle" dot={false}>
                 Provider B
-              </Badge>
+              </CellBadge>
             </BadgeGroup>
           }
         />
@@ -392,19 +385,19 @@ export function InvoiceReconciliation() {
                   {difference === null ? (
                     <MutedCell>--</MutedCell>
                   ) : (
-                    <Badge
+                    <CellBadge
                       color={difference >= 0 ? 'green' : 'destructive'}
                       tone="subtle"
                       dot={false}
                     >
                       {formatMoney(difference, true)}
-                    </Badge>
+                    </CellBadge>
                   )}
                 </CompactDataCell>
                 <CompactDataCell>
-                  <Badge color={row.statusColor} tone="subtle" dot={false}>
+                  <CellBadge color={row.statusColor} tone="subtle" dot={false}>
                     {row.status}
-                  </Badge>
+                  </CellBadge>
                 </CompactDataCell>
                 <CompactDataCell>
                   <IconButton

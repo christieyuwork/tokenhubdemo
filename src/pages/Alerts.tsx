@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Badge,
   DataRow,
   DateInput,
   HeaderRow,
@@ -12,6 +11,7 @@ import { ArrowDown, ArrowUp } from 'lucide-react';
 import { StackedBarChart, type StackedBarSeries } from '../charts/StackedBarChart';
 import {
   BadgeGroup,
+  CellBadge,
   CompactDataCell,
   MetricCard,
   MetricGrid,
@@ -19,6 +19,7 @@ import {
   ReportPanel,
   ReportTable,
   SortableHeaderCell,
+  ValueBadge,
   WideDataCell,
   reportCol,
   ReportFilterDropdown,
@@ -179,14 +180,6 @@ function sortValue(row: AlertRow, key: SortKey): string | number {
   }
 }
 
-function ValueBadge({ children }: { children: string }) {
-  return (
-    <Badge color="secondary" tone="subtle" dot={false}>
-      {children}
-    </Badge>
-  );
-}
-
 /** Model palette is reserved for the four named models only. */
 const MODEL_BADGE: Record<string, BadgeColor> = {
   'Frontier-L': 'indigo',
@@ -197,9 +190,9 @@ const MODEL_BADGE: Record<string, BadgeColor> = {
 
 function ModelBadge({ children }: { children: string }) {
   return (
-    <Badge color={MODEL_BADGE[children] ?? 'secondary'} tone="subtle" dot={false}>
+    <CellBadge color={MODEL_BADGE[children] ?? 'secondary'} tone="subtle" dot={false}>
       {children}
-    </Badge>
+    </CellBadge>
   );
 }
 
@@ -349,9 +342,9 @@ export function Alerts() {
                 <ValueBadge>{row.notified}</ValueBadge>
               </WideDataCell>
               <CompactDataCell>
-                <Badge color={row.statusColor} tone="subtle" dot={false}>
+                <CellBadge color={row.statusColor} tone="subtle" dot={false}>
                   {row.status}
-                </Badge>
+                </CellBadge>
               </CompactDataCell>
             </DataRow>
           ))}

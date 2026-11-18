@@ -1,10 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import {
-  Badge,
   Button,
-  Divider,
   Dropdown,
-  IconButton,
   Modal,
   ModalContent,
   ModalFooter,
@@ -12,7 +9,7 @@ import {
   Switch,
   TextInput,
 } from '@cake-admin/cakeand';
-import { Bell, ChevronUp, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Bell, ChevronDown, Plus } from 'lucide-react';
 import styled from 'styled-components';
 import { MetricCard, MetricGrid, ReportHeader, ReportPanel } from './ReportPage';
 
@@ -102,7 +99,7 @@ const INITIAL_RULES: AlertRule[] = [
     unit: 'usd',
     tolerancePercent: 5,
     scope: 'All providers',
-    notify: 'Email · Finance, Platform team',
+    notify: 'Email \u00B7 Finance, Platform team',
     enabled: true,
   },
   {
@@ -115,7 +112,7 @@ const INITIAL_RULES: AlertRule[] = [
     unit: 'percent',
     tolerancePercent: 2,
     scope: 'All providers',
-    notify: 'Email · Finance',
+    notify: 'Email \u00B7 Finance',
     enabled: true,
   },
   {
@@ -128,7 +125,7 @@ const INITIAL_RULES: AlertRule[] = [
     unit: 'percent',
     tolerancePercent: 3,
     scope: 'Crew scheduling',
-    notify: 'Email · Platform team',
+    notify: 'Email \u00B7 Platform team',
     enabled: true,
   },
   {
@@ -141,7 +138,7 @@ const INITIAL_RULES: AlertRule[] = [
     unit: 'percent',
     tolerancePercent: 5,
     scope: 'All apps',
-    notify: 'Email · Platform team',
+    notify: 'Email \u00B7 Platform team',
     enabled: false,
   },
   {
@@ -153,8 +150,8 @@ const INITIAL_RULES: AlertRule[] = [
     threshold: 80,
     unit: 'percent',
     tolerancePercent: 0,
-    scope: 'Provider A · Frontier-L',
-    notify: 'Email · Platform team',
+    scope: 'Provider A \u00B7 Frontier-L',
+    notify: 'Email \u00B7 Platform team',
     enabled: true,
   },
   {
@@ -166,8 +163,8 @@ const INITIAL_RULES: AlertRule[] = [
     threshold: 100,
     unit: 'percent',
     tolerancePercent: 0,
-    scope: 'Provider A · Frontier-L',
-    notify: 'Email · Platform team',
+    scope: 'Provider A \u00B7 Frontier-L',
+    notify: 'Email \u00B7 Platform team',
     enabled: true,
   },
   {
@@ -180,7 +177,7 @@ const INITIAL_RULES: AlertRule[] = [
     unit: 'percent',
     tolerancePercent: 5,
     scope: 'DC1 fleet',
-    notify: 'Email · Ops',
+    notify: 'Email \u00B7 Ops',
     enabled: false,
   },
 ];
@@ -194,179 +191,169 @@ const EMPTY_FORM: RuleFormState = {
   unit: 'usd',
   tolerancePercent: 5,
   scope: 'All providers',
-  notify: 'Email · Platform team',
+  notify: 'Email \u00B7 Platform team',
 };
 
-/*
-  Shared track sizes so header + every rule row + every category card
-  share one column rhythm. Fixed tracks (not auto) — cake& Switch would
-  otherwise expand the first column past the header’s empty cell.
-  Children use min-width: 0 so content cannot blow fixed tracks open.
-*/
-/*
-  Floors are 0 so the rule grid shrinks inside ReportPage Content instead of
-  widening the page. rem caps keep readable column targets on wide screens.
-*/
-const RULE_GRID_COLUMNS = `
-  minmax(0, 3rem)
-  minmax(0, 1fr)
-  minmax(0, 5.5rem)
-  minmax(0, 6.5rem)
-  minmax(0, 6rem)
-  minmax(0, 5rem)
-  minmax(0, 4.5rem)
-`;
-
-const RULE_GRID_GAP = `var(--space-400)`;
-
-const RuleList = styled.div`
-  box-sizing: border-box;
+const RuleList = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-100);
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
+  gap: var(--space-200);
 `;
 
-const RuleGrid = styled.div`
-  display: grid;
-  grid-template-columns: ${RULE_GRID_COLUMNS};
-  column-gap: ${RULE_GRID_GAP};
-  align-items: start;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  padding-inline: var(--space-100);
-
-  & > * {
-    min-width: 0;
-    max-width: 100%;
-  }
+const Card = styled.li<{ $active: boolean }>`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  border: var(--stroke-100) solid var(--color-stroke-border);
+  border-radius: var(--radius-200);
+  background: var(--color-surfaces-canvas);
+  border-inline-start: var(--stroke-300) solid
+    ${({ $active }) =>
+      $active ? 'var(--color-success-success)' : 'var(--color-disabled-disabled)'};
 `;
 
-const RuleListHeader = styled(RuleGrid)`
-  align-items: end;
-  padding-block: 0 var(--space-200);
-`;
-
-const ColumnLabel = styled.span`
-  color: var(--color-text-icon-secondary);
-  font-size: var(--type-size-caption);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.35;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-
-  &[data-align='end'] {
-    text-align: end;
-  }
-`;
-
-const RuleBlock = styled.div`
+const CardBody = styled.div`
   display: flex;
   flex-direction: column;
   gap: var(--space-300);
-  padding-block: var(--space-500);
+  padding: var(--space-300) var(--space-400);
+  min-width: 0;
 `;
 
-const RuleRow = styled(RuleGrid)`
-  align-items: start;
-`;
-
-const SwitchSlot = styled.div`
+const Header = styled.div`
   display: flex;
   align-items: flex-start;
-  justify-content: flex-start;
-  padding-top: var(--space-025);
-  overflow: hidden;
-`;
-
-const RuleIdentity = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-050);
+  gap: var(--space-300);
   min-width: 0;
 `;
 
-const RuleName = styled.p`
+const HeaderCopy = styled.div`
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-100);
+  min-width: 0;
+`;
+
+const Name = styled.h3`
   margin: 0;
-  overflow: hidden;
   color: var(--color-text-icon-primary);
   font-size: var(--type-size-subject);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
 `;
 
-const RuleMetric = styled.p`
+const Scope = styled.p`
   margin: 0;
-  overflow: hidden;
   color: var(--color-text-icon-secondary);
   font-size: var(--type-size-body);
-  font-weight: var(--font-weight-regular);
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
 `;
 
-const RuleDetail = styled.div`
+const StatusToggle = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: var(--space-050);
-  margin-top: var(--space-150);
-  min-width: 0;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  margin-inline-start: auto;
+  padding-top: var(--space-025);
 `;
 
-const RuleDetailLine = styled.p`
-  margin: 0;
-  overflow: hidden;
-  color: var(--color-text-icon-secondary);
-  font-size: var(--type-size-caption);
-  font-weight: var(--font-weight-regular);
-  line-height: 1.45;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
+const KpiStrip = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: baseline;
+  column-gap: var(--space-400);
+  row-gap: var(--space-100);
+  padding: var(--space-150) var(--space-300);
+  border-radius: var(--radius-150);
+  background: var(--color-surfaces-container);
 
-const ValueCell = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-050);
-  min-width: 0;
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
-  &[data-align='end'] {
-    align-items: flex-end;
-    text-align: end;
+  @media (max-width: 480px) {
+    grid-template-columns: minmax(0, 1fr);
   }
 `;
 
-const ValuePrimary = styled.span`
-  overflow: hidden;
-  color: var(--color-text-icon-primary);
-  font-size: var(--type-size-body);
+const Kpi = styled.div`
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-100);
+  min-width: 0;
+`;
+
+const KpiLabel = styled.span`
+  color: var(--color-text-icon-secondary);
+  font-size: var(--type-size-caption);
   font-weight: var(--font-weight-medium);
   line-height: 1.35;
-  text-overflow: ellipsis;
   white-space: nowrap;
 `;
 
-const StatusCell = styled.div`
+const KpiValue = styled.span`
+  color: var(--color-text-icon-primary);
+  font-size: var(--type-size-body);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.35;
+`;
+
+const Footer = styled.div`
   display: flex;
-  justify-content: flex-start;
-  padding-top: var(--space-025);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-200);
   min-width: 0;
 `;
 
-const RuleActions = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: var(--space-050);
+const Notify = styled.span`
+  color: var(--color-text-icon-secondary);
+  font-size: var(--type-size-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.35;
   min-width: 0;
+`;
+
+const Actions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-100);
+  margin-inline-start: auto;
+`;
+
+const DetailsPanel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-300);
+  padding: var(--space-300) var(--space-400) var(--space-400);
+  border-top: var(--stroke-100) solid var(--color-stroke-border);
+  background: var(--color-surfaces-container);
+`;
+
+const InlineActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-200);
+`;
+
+const Chevron = styled(ChevronDown)<{ $open: boolean }>`
+  transition: transform 160ms ease;
+  transform: rotate(${({ $open }) => ($open ? '180deg' : '0deg')});
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `;
 
 const EmptyState = styled.p`
@@ -385,24 +372,6 @@ const FormGrid = styled.div`
 
 const FormFull = styled.div`
   grid-column: 1 / -1;
-`;
-
-const InlineEditor = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-300);
-  margin-right: var(--space-100);
-  margin-left: calc(var(--space-100) + 3rem + ${RULE_GRID_GAP});
-  padding: var(--space-400);
-  border-radius: var(--radius-200);
-  background: var(--color-surfaces-on-container-high);
-`;
-
-const InlineActions = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-200);
 `;
 
 function formatThreshold(value: number, unit: MetricUnit): string {
@@ -424,7 +393,9 @@ function formatComparator(comparator: Comparator): string {
   return comparator === 'above' ? 'Above' : 'Below';
 }
 
-function formatFireAt(rule: Pick<AlertRule, 'comparator' | 'threshold' | 'unit' | 'tolerancePercent'>): string {
+function formatFireAt(
+  rule: Pick<AlertRule, 'comparator' | 'threshold' | 'unit' | 'tolerancePercent'>,
+): string {
   if (rule.tolerancePercent <= 0) {
     return formatThreshold(rule.threshold, rule.unit);
   }
@@ -432,10 +403,6 @@ function formatFireAt(rule: Pick<AlertRule, 'comparator' | 'threshold' | 'unit' 
   const effective =
     rule.comparator === 'above' ? rule.threshold + buffer : rule.threshold - buffer;
   return formatThreshold(Math.max(0, effective), rule.unit);
-}
-
-function formatFireDetail(rule: Pick<AlertRule, 'comparator' | 'threshold' | 'unit' | 'tolerancePercent'>): string {
-  return `Fires at ${formatFireAt(rule)}`;
 }
 
 function ruleToForm(rule: AlertRule): RuleFormState {
@@ -476,7 +443,7 @@ function applyFormToRule(rule: AlertRule, form: RuleFormState): AlertRule {
     unit: form.unit,
     tolerancePercent: form.tolerancePercent,
     scope: form.scope.trim() || 'All providers',
-    notify: form.notify.trim() || 'Email · Platform team',
+    notify: form.notify.trim() || 'Email \u00B7 Platform team',
   };
 }
 
@@ -569,7 +536,7 @@ function RuleFormFields({
           label="Notify"
           value={form.notify}
           onChange={(event) => onChange('notify', event.target.value)}
-          placeholder="Email · team"
+          placeholder="Email \u00B7 team"
         />
       </FormFull>
     </FormGrid>
@@ -577,6 +544,7 @@ function RuleFormFields({
 }
 
 export function AlertRules() {
+  const detailsBaseId = useId();
   const [rules, setRules] = useState<AlertRule[]>(INITIAL_RULES);
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState<RuleFormState>(EMPTY_FORM);
@@ -668,7 +636,7 @@ export function AlertRules() {
         unit: createForm.unit,
         tolerancePercent: createForm.tolerancePercent,
         scope: createForm.scope.trim() || 'All providers',
-        notify: createForm.notify.trim() || 'Email · Platform team',
+        notify: createForm.notify.trim() || 'Email \u00B7 Platform team',
         enabled: true,
       },
     ]);
@@ -739,111 +707,108 @@ export function AlertRules() {
             {categoryRules.length === 0 ? (
               <EmptyState>No rules in this category yet.</EmptyState>
             ) : (
-              <RuleList>
-                <RuleListHeader aria-hidden="true">
-                  <span />
-                  <ColumnLabel>Rule</ColumnLabel>
-                  <ColumnLabel>Condition</ColumnLabel>
-                  <ColumnLabel data-align="end">Threshold</ColumnLabel>
-                  <ColumnLabel data-align="end">Tolerance</ColumnLabel>
-                  <ColumnLabel>Status</ColumnLabel>
-                  <span />
-                </RuleListHeader>
-                {categoryRules.map((rule, index) => {
+              <RuleList aria-label={`${category.label} alert rules`}>
+                {categoryRules.map((rule) => {
+                  const active = rule.enabled;
                   const expanded = expandedId === rule.id;
+                  const detailsId = `${detailsBaseId}-${rule.id}-details`;
+
                   return (
-                    <div key={rule.id}>
-                      {index > 0 ? <Divider weight="weak" /> : null}
-                      <RuleBlock>
-                        <RuleRow>
-                          <SwitchSlot>
+                    <Card key={rule.id} $active={active}>
+                      <CardBody>
+                        <Header>
+                          <HeaderCopy>
+                            <Name>{rule.name}</Name>
+                            <Scope>{rule.scope}</Scope>
+                          </HeaderCopy>
+                          <StatusToggle>
                             <Switch
-                              checked={rule.enabled}
+                              label={active ? 'Active' : 'Paused'}
+                              checked={active}
                               onCheckedChange={(checked) => handleToggle(rule.id, checked)}
-                              aria-label={`Enable ${rule.name}`}
                             />
-                          </SwitchSlot>
-                          <RuleIdentity>
-                            <RuleName>{rule.name}</RuleName>
-                            <RuleMetric>{rule.metric}</RuleMetric>
-                            <RuleDetail>
-                              <RuleDetailLine>{formatFireDetail(rule)}</RuleDetailLine>
-                              <RuleDetailLine>
-                                {rule.scope}
-                                {' · '}
-                                {rule.notify}
-                              </RuleDetailLine>
-                            </RuleDetail>
-                          </RuleIdentity>
-                          <ValueCell>
-                            <ValuePrimary>{formatComparator(rule.comparator)}</ValuePrimary>
-                          </ValueCell>
-                          <ValueCell data-align="end">
-                            <ValuePrimary>{formatThreshold(rule.threshold, rule.unit)}</ValuePrimary>
-                          </ValueCell>
-                          <ValueCell data-align="end">
-                            <ValuePrimary>{formatTolerance(rule.tolerancePercent)}</ValuePrimary>
-                          </ValueCell>
-                          <StatusCell>
-                            <Badge
-                              color={rule.enabled ? 'green' : 'secondary'}
-                              tone="subtle"
-                              dot={false}
-                            >
-                              {rule.enabled ? 'Active' : 'Paused'}
-                            </Badge>
-                          </StatusCell>
-                          <RuleActions>
-                            <IconButton
+                          </StatusToggle>
+                        </Header>
+
+                        <KpiStrip aria-label="Rule thresholds">
+                          <Kpi>
+                            <KpiLabel>Metric</KpiLabel>
+                            <KpiValue>{rule.metric}</KpiValue>
+                          </Kpi>
+                          <Kpi>
+                            <KpiLabel>Condition</KpiLabel>
+                            <KpiValue>{formatComparator(rule.comparator)}</KpiValue>
+                          </Kpi>
+                          <Kpi>
+                            <KpiLabel>Threshold</KpiLabel>
+                            <KpiValue>{formatThreshold(rule.threshold, rule.unit)}</KpiValue>
+                          </Kpi>
+                          <Kpi>
+                            <KpiLabel>Fires at</KpiLabel>
+                            <KpiValue>
+                              {formatFireAt(rule)}
+                              {rule.tolerancePercent > 0
+                                ? ` (${formatTolerance(rule.tolerancePercent)})`
+                                : ''}
+                            </KpiValue>
+                          </Kpi>
+                        </KpiStrip>
+
+                        <Footer>
+                          <Notify>{rule.notify}</Notify>
+                          <Actions>
+                            <Button
                               size="sm"
-                              variant={expanded ? 'tonal' : 'ghost'}
                               intent="secondary"
-                              label={expanded ? `Collapse ${rule.name}` : `Edit ${rule.name}`}
-                              icon={expanded ? <ChevronUp /> : <Pencil />}
-                              onClick={() => toggleExpand(rule)}
+                              variant="outline"
+                              onClick={() => setDeleteId(rule.id)}
+                            >
+                              Delete
+                            </Button>
+                            <Button
+                              size="sm"
+                              intent="secondary"
+                              variant="ghost"
                               aria-expanded={expanded}
-                            />
-                            <IconButton
+                              aria-controls={detailsId}
+                              endIcon={<Chevron size={16} $open={expanded} aria-hidden />}
+                              onClick={() => toggleExpand(rule)}
+                            >
+                              {expanded ? 'Hide edit' : 'Edit'}
+                            </Button>
+                          </Actions>
+                        </Footer>
+                      </CardBody>
+
+                      {expanded ? (
+                        <DetailsPanel id={detailsId}>
+                          <RuleFormFields
+                            form={editForm}
+                            onChange={updateEditForm}
+                            onCategoryChange={() => undefined}
+                            onMetricChange={handleEditMetricChange}
+                            lockCategory
+                          />
+                          <InlineActions>
+                            <Button
                               size="sm"
                               variant="ghost"
                               intent="secondary"
-                              label={`Delete ${rule.name}`}
-                              icon={<Trash2 />}
-                              onClick={() => setDeleteId(rule.id)}
-                            />
-                          </RuleActions>
-                        </RuleRow>
-
-                        {expanded ? (
-                          <InlineEditor>
-                            <RuleFormFields
-                              form={editForm}
-                              onChange={updateEditForm}
-                              onCategoryChange={() => undefined}
-                              onMetricChange={handleEditMetricChange}
-                              lockCategory
-                            />
-                            <InlineActions>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                intent="secondary"
-                                onClick={handleCancelEdit}
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={handleSaveEdit}
-                                disabled={!editForm.name.trim()}
-                              >
-                                Save changes
-                              </Button>
-                            </InlineActions>
-                          </InlineEditor>
-                        ) : null}
-                      </RuleBlock>
-                    </div>
+                              onClick={handleCancelEdit}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={handleSaveEdit}
+                              disabled={!editForm.name.trim()}
+                            >
+                              Save changes
+                            </Button>
+                          </InlineActions>
+                        </DetailsPanel>
+                      ) : null}
+                    </Card>
                   );
                 })}
               </RuleList>
@@ -888,7 +853,7 @@ export function AlertRules() {
         title="Delete alert rule"
         subtitle={
           deleteTarget
-            ? `Remove “${deleteTarget.name}”? This cannot be undone in the prototype.`
+            ? `Remove "${deleteTarget.name}"? This cannot be undone in the prototype.`
             : undefined
         }
         modalIcon="error"

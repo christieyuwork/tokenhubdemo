@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Badge,
   DataCell,
   DataRow,
   DateInput,
@@ -14,11 +13,13 @@ import { ArrowDown, ArrowUp } from 'lucide-react';
 import styled from 'styled-components';
 import { StackedBarChart, type StackedBarSeries } from '../charts/StackedBarChart';
 import {
+  CellBadge,
   MetricCard,
   MetricGrid,
   ReportHeader,
   ReportPanel,
   ReportTable,
+  ValueBadge,
   reportCol,
   ReportFilterDropdown,
 } from './ReportPage';
@@ -36,44 +37,44 @@ interface ModelInfo {
 
 const MODELS: ModelInfo[] = [
   {
-    id: 'frontier-l',
-    name: 'Frontier-L',
+    id: 'claude-sonnet',
+    name: 'Claude Sonnet 4.6',
     badge: 'indigo',
-    provider: 'Provider A',
-    perMillion: 16.44,
+    provider: 'Public cloud',
+    perMillion: 25.32,
     color: '#7586ff',
     emphasisColor: '#6776ee',
   },
   {
-    id: 'mid-m',
-    name: 'Mid-M',
+    id: 'llama-70b',
+    name: 'Llama 3.3 70B Instruct',
     badge: 'cyan',
-    provider: 'Provider A',
-    perMillion: 3.29,
+    provider: 'Lenovo infrastructure',
+    perMillion: 3.82,
     color: '#00bbdf',
     emphasisColor: '#00aacb',
   },
   {
-    id: 'small-s',
-    name: 'Small-S',
-    badge: 'yellow',
-    provider: 'Provider B',
-    perMillion: 2.68,
-    color: '#e2c600',
-    emphasisColor: '#d0b600',
-  },
-  {
-    id: 'open-70b',
-    name: 'Open-70B',
+    id: 'llama-405b',
+    name: 'Llama 3.1 405B Instruct',
     badge: 'magenta',
-    provider: 'Self-hosted (AIC)',
-    perMillion: 1.8,
+    provider: 'In-country',
+    perMillion: 13.3,
     color: '#f65396',
     emphasisColor: '#e24c8a',
   },
+  {
+    id: 'qwen-8b',
+    name: 'Qwen 8B',
+    badge: 'yellow',
+    provider: 'Self-hosted',
+    perMillion: 1.8,
+    color: '#e2c600',
+    emphasisColor: '#d0b600',
+  },
 ];
 
-/** July cost for Frontier-L at the demo usage mix; other models scale from rate. */
+/** Brightsky starting monthly total; alternatives scale from rate. */
 const FRONTIER_COST = 240000;
 
 const MODEL_OPTIONS = MODELS.map((item) => ({ value: item.id, label: item.name }));
@@ -145,14 +146,6 @@ function formatTokens(tokens: number) {
 
 function formatChartLabel(value: number) {
   return `$${value.toFixed(2)}`;
-}
-
-function ValueBadge({ children }: { children: string }) {
-  return (
-    <Badge color="secondary" tone="subtle" dot={false}>
-      {children}
-    </Badge>
-  );
 }
 
 export function ModelAnalyzer() {
@@ -251,14 +244,14 @@ export function ModelAnalyzer() {
         <MetricCard
           label="Current model"
           value={
-            <Badge color={current.badge} tone="subtle" dot={false}>
+            <CellBadge color={current.badge} tone="subtle" dot={false}>
               {current.name}
-            </Badge>
+            </CellBadge>
           }
           caption={
-            <Badge color="secondary" tone="subtle" dot={false}>
+            <CellBadge color="secondary" tone="subtle" dot={false}>
               {current.provider}
-            </Badge>
+            </CellBadge>
           }
         />
         <MetricCard label="Current cost" value={formatMoney(currentCost)} caption="July 2024" />
@@ -289,7 +282,7 @@ export function ModelAnalyzer() {
       </ReportPanel>
       <ReportPanel
         title="Same usage on other models"
-        note="Cost only. Answer quality is not assessed. Open-70B uses the internal price per token set in the model registry."
+        note="Cost only. Answer quality is not assessed. Self-hosted and Lenovo rates use the internal price per token set in the model registry."
       >
         <ReportTable
           aria-label="Same usage on other models"
@@ -337,14 +330,14 @@ export function ModelAnalyzer() {
           {rows.map((row) => (
             <DataRow key={row.id} selectable={false}>
               <DataCell>
-                <Badge color={current.badge} tone="subtle" dot={false}>
+                <CellBadge color={current.badge} tone="subtle" dot={false}>
                   {row.model}
-                </Badge>
+                </CellBadge>
               </DataCell>
               <DataCell>
-                <Badge color={row.alternative.badge} tone="subtle" dot={false}>
+                <CellBadge color={row.alternative.badge} tone="subtle" dot={false}>
                   {row.alternative.name}
-                </Badge>
+                </CellBadge>
               </DataCell>
               <DataCell>
                 <ValueBadge>{row.alternative.provider}</ValueBadge>

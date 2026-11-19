@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { Button, IconButton } from '@cake-admin/cakeand';
-import { ArrowUp, Plus, X } from 'lucide-react';
+import { ArrowUp, ChevronDown, Plus, X } from 'lucide-react';
 import styled from 'styled-components';
 import {
   DEFAULT_PRIORITIES,
@@ -215,6 +215,14 @@ const PinnedPrompt = styled.div`
   background: var(--color-surfaces-on-container-low);
 `;
 
+const PinnedPromptHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-200);
+  min-width: 0;
+`;
+
 const PinnedPromptText = styled.p`
   margin: 0;
   color: var(--color-text-icon-primary);
@@ -228,23 +236,48 @@ const Transcript = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--space-300);
   min-height: 0;
   padding: var(--space-300) var(--space-500);
-  overflow: auto;
+  overflow: hidden;
 `;
 
 const ResultCard = styled.section`
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--space-300);
+  gap: var(--space-200);
   min-width: 0;
+  min-height: 0;
 `;
 
-const RulesBlock = styled.section`
+/** Route map takes remaining height; scores stay compact at the bottom. */
+const OutcomeSplit = styled.div`
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: var(--space-150);
+  min-width: 0;
+  min-height: 0;
+`;
+
+const AdvancedChevron = styled(ChevronDown)<{ $open?: boolean }>`
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transform: rotate(${({ $open }) => ($open ? '180deg' : '0deg')});
+  transition: transform 120ms ease;
+`;
+
+const AdvancedBody = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: var(--space-150);
+  min-width: 0;
+  padding: var(--space-200);
+  border: var(--stroke-100) solid var(--color-stroke-border-low);
+  border-radius: var(--radius-200);
+  background: var(--color-surfaces-canvas);
 `;
 
 const SectionLabel = styled.h3`
@@ -259,25 +292,53 @@ const SectionLabel = styled.h3`
 
 const GraphSlot = styled.div`
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
   padding: var(--space-200);
+  overflow: hidden;
   border: var(--stroke-100) solid var(--color-stroke-border-low);
   border-radius: var(--radius-200);
   background: var(--color-surfaces-canvas);
 `;
 
-const ResultFooter = styled.div`
+const ScoresPanel = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-200) var(--space-300);
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--space-100);
+  min-width: 0;
+  padding: var(--space-150) var(--space-200);
+  border: var(--stroke-100) solid var(--color-stroke-border-low);
+  border-radius: var(--radius-200);
+  background: var(--color-surfaces-canvas);
+`;
+
+const ScoresHeading = styled.h3`
+  margin: 0;
+  flex-shrink: 0;
+  color: var(--color-text-icon-primary);
+  font-size: var(--type-size-helper);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
 `;
 
 const ScoresBlock = styled.div`
-  flex: 1 1 16rem;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+`;
+
+const SessionFooter = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-200);
+  padding: var(--space-200) var(--space-500);
+  border-top: var(--stroke-100) solid var(--color-stroke-border-low);
+  background: var(--color-surfaces-container);
 `;
 
 const ComposerZone = styled.section`
@@ -436,6 +497,7 @@ export function TryRequestModal({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [composing, setComposing] = useState(true);
   const [focused, setFocused] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const activeSession = sessions.find((session) => session.id === activeId) ?? null;
   const showTabs = sessions.length > 0;
@@ -765,46 +827,64 @@ export function TryRequestModal({
         ) : activeSession ? (
           <SessionShell>
             <PinnedPrompt>
-              <SectionLabel>Prompt</SectionLabel>
+              <PinnedPromptHeader>
+                <SectionLabel>Prompt</SectionLabel>
+                <Button
+                  type="button"
+                  size="sm"
+                  intent="secondary"
+                  variant="ghost"
+                  endIcon={<AdvancedChevron $open={advancedOpen} aria-hidden />}
+                  aria-expanded={advancedOpen}
+                  onClick={() => setAdvancedOpen((open) => !open)}
+                >
+                  Advanced settings
+                </Button>
+              </PinnedPromptHeader>
               <PinnedPromptText>{activeSession.prompt}</PinnedPromptText>
             </PinnedPrompt>
             <Transcript aria-live="polite">
               <ResultCard>
-                <RulesBlock aria-label="Judgement rules">
-                  <SectionLabel>Judgement</SectionLabel>
-                  <JudgementControls
-                    value={activeSession.judgement}
-                    onChange={(next) => onJudgementChange(activeSession.id, next)}
-                  />
-                </RulesBlock>
+                {advancedOpen ? (
+                  <AdvancedBody>
+                    <JudgementControls
+                      value={activeSession.judgement}
+                      onChange={(next) => onJudgementChange(activeSession.id, next)}
+                    />
+                  </AdvancedBody>
+                ) : null}
 
-                <GraphSlot>
-                  <RouterLaneGraph
-                    policyId={policyId}
-                    evaluation={activeSession.evaluation}
-                  />
-                </GraphSlot>
+                <OutcomeSplit>
+                  <GraphSlot>
+                    <RouterLaneGraph
+                      policyId={policyId}
+                      evaluation={activeSession.evaluation}
+                    />
+                  </GraphSlot>
 
-                <ResultFooter>
-                  <ScoresBlock aria-label="Selected route scores">
-                    <SectionLabel>Route scores</SectionLabel>
-                    <PriorityControls evaluation={activeSession.evaluation} />
-                  </ScoresBlock>
-                  {onCreatePolicy ? (
-                    <Button
-                      intent="primary"
-                      variant="fill"
-                      size="sm"
-                      startIcon={<Plus size={16} aria-hidden />}
-                      type="button"
-                      onClick={handleCreatePolicy}
-                    >
-                      Make a new policy
-                    </Button>
-                  ) : null}
-                </ResultFooter>
+                  <ScoresPanel aria-label="Selected route scores">
+                    <ScoresHeading>Route scores</ScoresHeading>
+                    <ScoresBlock>
+                      <PriorityControls evaluation={activeSession.evaluation} />
+                    </ScoresBlock>
+                  </ScoresPanel>
+                </OutcomeSplit>
               </ResultCard>
             </Transcript>
+            {onCreatePolicy ? (
+              <SessionFooter>
+                <Button
+                  intent="primary"
+                  variant="fill"
+                  size="sm"
+                  startIcon={<Plus size={16} aria-hidden />}
+                  type="button"
+                  onClick={handleCreatePolicy}
+                >
+                  Make a new policy
+                </Button>
+              </SessionFooter>
+            ) : null}
           </SessionShell>
         ) : null}
       </Panel>

@@ -773,7 +773,10 @@ export function CategoryLanding({ category, onNavigate }: CategoryLandingProps) 
         </MetricGrid>
 
         {category === 'optimization' ? (
-          <ExploreLabBanner onWhatIf={go('what-if')} />
+          <ExploreLabBanner
+            onTestPrompt={go('test-prompt')}
+            onExploreScenario={go('explore-scenario')}
+          />
         ) : null}
 
         <SectionCard role="region" aria-label={`${def.title} views`}>

@@ -6,6 +6,7 @@ import { InlineIcon } from './LeadIcon';
 export interface LabAdsProps {
   onWhatIf?: () => void;
   onTestPrompt?: () => void;
+  onExploreScenario?: () => void;
 }
 
 const sheen = keyframes`
@@ -113,32 +114,67 @@ const InverseButton = styled(Button)`
   }
 `;
 
+/*
+  Outline CTA on the gradient. cake& outline uses inset box-shadow for the
+  stroke (not border-color), so override that for a white ring.
+*/
+const OutlineOnPrimary = styled(Button)`
+  && {
+    background: transparent;
+    color: var(--color-surfaces-container);
+    box-shadow: inset 0 0 0 var(--stroke-200) var(--color-surfaces-container);
+  }
+
+  &&:hover:not(:disabled) {
+    background: var(--color-primary-primary-overlay);
+    color: var(--color-surfaces-container);
+    box-shadow: inset 0 0 0 var(--stroke-200) var(--color-surfaces-container);
+  }
+
+  && svg {
+    color: inherit;
+  }
+`;
+
 /** Full-width gradient CTA for Explore / Optimization, below the metrics row. */
-export function ExploreLabBanner({ onWhatIf }: Pick<LabAdsProps, 'onWhatIf'>) {
+export function ExploreLabBanner({
+  onTestPrompt,
+  onExploreScenario,
+}: Pick<LabAdsProps, 'onTestPrompt' | 'onExploreScenario'>) {
   return (
-    <ExploreBanner role="region" aria-label="Labs and playgrounds">
+    <ExploreBanner role="region" aria-label="Prompt lab">
       <ExploreInner>
         <ExploreCopy>
           <ExploreEyebrow>
             <InlineIcon>
               <Sparkles aria-hidden />
             </InlineIcon>
-            Labs
+            Prompt lab
           </ExploreEyebrow>
           <ExploreTitle>Stress-test routing before it hits production</ExploreTitle>
           <ExploreBody>
-            Stress your own volume, model, and placement against goals you set — before
-            changes hit production.
+            Test a live prompt on the routing map, or explore a scenario to plan volume,
+            model, and placement before changes hit production.
           </ExploreBody>
         </ExploreCopy>
         <ExploreActions>
+          <OutlineOnPrimary
+            type="button"
+            size="sm"
+            intent="secondary"
+            variant="outline"
+            endIcon={<FlaskConical size={16} aria-hidden />}
+            onClick={onExploreScenario}
+          >
+            Explore a scenario
+          </OutlineOnPrimary>
           <InverseButton
             type="button"
             size="sm"
-            endIcon={<FlaskConical size={16} aria-hidden />}
-            onClick={onWhatIf}
+            endIcon={<Sparkles size={16} aria-hidden />}
+            onClick={onTestPrompt}
           >
-            What if
+            Test a Prompt
           </InverseButton>
         </ExploreActions>
       </ExploreInner>

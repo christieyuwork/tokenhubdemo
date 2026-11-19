@@ -33,7 +33,7 @@ import { navGroups } from './shell/nav';
 function resolveNavigation(next: string): {
   section: string;
   focusPolicies?: boolean;
-  promptLabMode?: 'test' | 'whatIf';
+  promptLabMode?: 'test' | 'whatIf' | 'scenario';
 } {
   if (next === 'routing' || next === 'intelligent-routing') {
     return { section: 'intelligent-routing' };
@@ -46,6 +46,9 @@ function resolveNavigation(next: string): {
   }
   if (next === 'test-prompt') {
     return { section: 'prompt-lab', promptLabMode: 'test' };
+  }
+  if (next === 'scenario' || next === 'explore-scenario') {
+    return { section: 'prompt-lab', promptLabMode: 'scenario' };
   }
   if (next === 'prompt-lab') {
     return { section: 'prompt-lab' };
@@ -137,7 +140,9 @@ export default function App() {
   const [section, setSection] = useState('home');
   const [focusRoutingPolicies, setFocusRoutingPolicies] = useState(false);
   const [focusRoutingDecisionId, setFocusRoutingDecisionId] = useState<string | null>(null);
-  const [promptLabMode, setPromptLabMode] = useState<'test' | 'whatIf' | undefined>();
+  const [promptLabMode, setPromptLabMode] = useState<
+    'test' | 'whatIf' | 'scenario' | undefined
+  >();
 
   function navigateTo(next: string, decisionId?: string) {
     const resolved = resolveNavigation(next);

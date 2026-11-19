@@ -880,7 +880,10 @@ export function Home({ onNavigate }: HomeProps) {
           </MetricsPanel>
 
           <LabBannerSlot>
-            <ExploreLabBanner onWhatIf={go('what-if')} />
+            <ExploreLabBanner
+              onTestPrompt={go('test-prompt')}
+              onExploreScenario={go('explore-scenario')}
+            />
           </LabBannerSlot>
 
           <GpuCard role="region" aria-label="GPU fleet efficiency">

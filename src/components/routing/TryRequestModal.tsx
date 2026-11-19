@@ -73,35 +73,35 @@ const Panel = styled.div`
 const Header = styled.header`
   display: flex;
   flex-shrink: 0;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--space-300);
-  padding: var(--space-300) var(--space-500) var(--space-200);
+  gap: var(--space-200);
+  padding: var(--space-200) var(--space-400) var(--space-150);
   border-bottom: var(--stroke-100) solid var(--color-stroke-border-low);
 `;
 
 const HeaderText = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--space-050);
+  gap: var(--space-025);
   min-width: 0;
 `;
 
 const Title = styled.h2`
   margin: 0;
   color: var(--color-text-icon-primary);
-  font-size: var(--type-size-title);
+  font-size: var(--type-size-subtitle);
   font-weight: var(--font-weight-bold);
-  line-height: 1.3;
+  line-height: 1.25;
 `;
 
 const Subtitle = styled.p`
   margin: 0;
   max-width: 40rem;
   color: var(--color-text-icon-secondary);
-  font-size: var(--type-size-body);
+  font-size: var(--type-size-caption);
   font-weight: var(--font-weight-medium);
-  line-height: 1.4;
+  line-height: 1.35;
 `;
 
 const TabBar = styled.div`
@@ -109,8 +109,7 @@ const TabBar = styled.div`
   flex-shrink: 0;
   align-items: center;
   gap: var(--space-100);
-  padding: var(--space-150) var(--space-500);
-  border-bottom: var(--stroke-100) solid var(--color-stroke-border-low);
+  padding: var(--space-075) var(--space-400) 0;
 `;
 
 const TabList = styled.div`
@@ -129,7 +128,7 @@ const TabChip = styled.button<{ $active?: boolean }>`
   gap: var(--space-050);
   max-width: 16rem;
   margin: 0;
-  padding: var(--space-100) var(--space-150);
+  padding: var(--space-075) var(--space-150);
   border: none;
   border-bottom: var(--stroke-200) solid
     ${({ $active }) =>
@@ -139,10 +138,10 @@ const TabChip = styled.button<{ $active?: boolean }>`
     $active ? 'var(--color-primary-primary-overlay)' : 'transparent'};
   color: var(--color-text-icon-primary);
   font: inherit;
-  font-size: var(--type-size-body);
+  font-size: var(--type-size-helper);
   font-weight: ${({ $active }) =>
     $active ? 'var(--font-weight-bold)' : 'var(--font-weight-medium)'};
-  line-height: 1.35;
+  line-height: 1.3;
   cursor: pointer;
 
   &:hover {
@@ -209,10 +208,10 @@ const PinnedPrompt = styled.div`
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
-  gap: var(--space-100);
-  padding: var(--space-200) var(--space-500);
+  gap: var(--space-050);
+  padding: var(--space-150) var(--space-400);
   border-bottom: var(--stroke-100) solid var(--color-stroke-border-low);
-  background: var(--color-surfaces-on-container-low);
+  background: var(--color-badge-blue-light);
 `;
 
 const PinnedPromptHeader = styled.div`
@@ -228,7 +227,7 @@ const PinnedPromptText = styled.p`
   color: var(--color-text-icon-primary);
   font-size: var(--type-size-body);
   font-weight: var(--font-weight-medium);
-  line-height: 1.45;
+  line-height: 1.35;
   white-space: pre-wrap;
 `;
 
@@ -237,7 +236,7 @@ const Transcript = styled.div`
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  padding: var(--space-300) var(--space-500);
+  padding: var(--space-200) var(--space-400);
   overflow: hidden;
 `;
 
@@ -245,7 +244,7 @@ const ResultCard = styled.section`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--space-200);
+  gap: var(--space-150);
   min-width: 0;
   min-height: 0;
 `;
@@ -255,7 +254,7 @@ const OutcomeSplit = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--space-150);
+  gap: var(--space-100);
   min-width: 0;
   min-height: 0;
 `;
@@ -272,12 +271,9 @@ const AdvancedBody = styled.div`
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
-  gap: var(--space-150);
+  gap: var(--space-100);
   min-width: 0;
-  padding: var(--space-200);
-  border: var(--stroke-100) solid var(--color-stroke-border-low);
-  border-radius: var(--radius-200);
-  background: var(--color-surfaces-canvas);
+  padding-top: var(--space-100);
 `;
 
 const SectionLabel = styled.h3`
@@ -296,7 +292,7 @@ const GraphSlot = styled.div`
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  padding: var(--space-200);
+  padding: var(--space-150);
   overflow: hidden;
   border: var(--stroke-100) solid var(--color-stroke-border-low);
   border-radius: var(--radius-200);
@@ -307,26 +303,6 @@ const ScoresPanel = styled.div`
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  gap: var(--space-100);
-  min-width: 0;
-  padding: var(--space-150) var(--space-200);
-  border: var(--stroke-100) solid var(--color-stroke-border-low);
-  border-radius: var(--radius-200);
-  background: var(--color-surfaces-canvas);
-`;
-
-const ScoresHeading = styled.h3`
-  margin: 0;
-  flex-shrink: 0;
-  color: var(--color-text-icon-primary);
-  font-size: var(--type-size-helper);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.3;
-`;
-
-const ScoresBlock = styled.div`
-  display: flex;
-  flex-direction: column;
   min-width: 0;
 `;
 
@@ -336,7 +312,7 @@ const SessionFooter = styled.div`
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-200);
-  padding: var(--space-200) var(--space-500);
+  padding: var(--space-150) var(--space-400);
   border-top: var(--stroke-100) solid var(--color-stroke-border-low);
   background: var(--color-surfaces-container);
 `;
@@ -842,18 +818,17 @@ export function TryRequestModal({
                 </Button>
               </PinnedPromptHeader>
               <PinnedPromptText>{activeSession.prompt}</PinnedPromptText>
+              {advancedOpen ? (
+                <AdvancedBody>
+                  <JudgementControls
+                    value={activeSession.judgement}
+                    onChange={(next) => onJudgementChange(activeSession.id, next)}
+                  />
+                </AdvancedBody>
+              ) : null}
             </PinnedPrompt>
             <Transcript aria-live="polite">
               <ResultCard>
-                {advancedOpen ? (
-                  <AdvancedBody>
-                    <JudgementControls
-                      value={activeSession.judgement}
-                      onChange={(next) => onJudgementChange(activeSession.id, next)}
-                    />
-                  </AdvancedBody>
-                ) : null}
-
                 <OutcomeSplit>
                   <GraphSlot>
                     <RouterLaneGraph
@@ -863,10 +838,7 @@ export function TryRequestModal({
                   </GraphSlot>
 
                   <ScoresPanel aria-label="Selected route scores">
-                    <ScoresHeading>Route scores</ScoresHeading>
-                    <ScoresBlock>
-                      <PriorityControls evaluation={activeSession.evaluation} />
-                    </ScoresBlock>
+                    <PriorityControls evaluation={activeSession.evaluation} />
                   </ScoresPanel>
                 </OutcomeSplit>
               </ResultCard>

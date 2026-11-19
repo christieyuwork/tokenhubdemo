@@ -17,9 +17,10 @@ const STAR_X = 28;
 const MODEL_X = 590;
 const VIEW_W = 820;
 const LANE_GAP = 42;
-const TOP_PAD = 24;
+/** Room under stage labels so Policy / Security / … clear the first dots. */
+const TOP_PAD = 32;
 /** Clearance under the last lane for model label / star caption. */
-const BOTTOM_PAD = 14;
+const BOTTOM_PAD = 12;
 const NODE_R = 6.5;
 const NODE_HIT_R = 14;
 const NODE_RING_R = 10;

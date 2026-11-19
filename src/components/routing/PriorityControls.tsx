@@ -20,7 +20,7 @@ const Stack = styled.div`
 const Rows = styled.div`
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-150);
+  gap: var(--space-100);
 
   @media (max-width: 40rem) {
     grid-template-columns: 1fr;
@@ -31,9 +31,9 @@ const ScoreCard = styled.div<{ $accent: ScoreAccent }>`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: var(--space-050);
+  gap: var(--space-025);
   min-width: 0;
-  padding: var(--space-150) var(--space-200);
+  padding: var(--space-100) var(--space-150);
   border: var(--stroke-100) solid transparent;
   border-left-width: var(--stroke-250);
   border-radius: var(--radius-200);

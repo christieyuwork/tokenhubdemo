@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Button,
   DataRow,
   HeaderRow,
   IconButton,
 } from '@cake-admin/cakeand';
-import { ArrowDown, ArrowUp, Plus } from 'lucide-react';
+import { ArrowDown, ArrowUp } from 'lucide-react';
 import styled from 'styled-components';
 import { StackedBarChart, type StackedBarSeries } from '../charts/StackedBarChart';
 import {
@@ -37,7 +36,6 @@ import {
   CellBadge,
   CompactDataCell,
   HeaderActionButton,
-  HeaderMetaStrong,
   MetricCard,
   MetricGrid,
   ReportFilterDropdown,
@@ -85,6 +83,18 @@ const LatestMeta = styled.span`
   font-weight: var(--font-weight-medium);
 `;
 
+const RoutingMetricGrid = styled(MetricGrid)`
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  @container report-content (max-width: 900px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @container report-content (max-width: 480px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+`;
+
 function formatChartLabel(value: number) {
   return `${value.toFixed(2)}M`;
 }
@@ -92,9 +102,14 @@ function formatChartLabel(value: number) {
 export interface IntelligentRoutingProps {
   /** When true, scroll to the policies section after mount (Home / legacy CTAs). */
   focusPolicies?: boolean;
+  /** When true, open Test a Prompt after mount (Explore Optimize CTA). */
+  openTestPrompt?: boolean;
 }
 
-export function IntelligentRouting({ focusPolicies = false }: IntelligentRoutingProps) {
+export function IntelligentRouting({
+  focusPolicies = false,
+  openTestPrompt: openTestPromptOnMount = false,
+}: IntelligentRoutingProps) {
   const policiesSectionRef = useRef<HTMLDivElement>(null);
   const [policies, setPolicies] = useState<RoutingPolicy[]>(() => listPolicies());
   const [policyFilter, setPolicyFilter] = useState<string>(ALL);
@@ -113,6 +128,12 @@ export function IntelligentRouting({ focusPolicies = false }: IntelligentRouting
     if (!focusPolicies) return;
     policiesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [focusPolicies]);
+
+  useEffect(() => {
+    if (!openTestPromptOnMount) return;
+    setSeedPrompt(undefined);
+    setTryOpen(true);
+  }, [openTestPromptOnMount]);
 
   const policyOptions = useMemo(
     () => [
@@ -292,7 +313,7 @@ export function IntelligentRouting({ focusPolicies = false }: IntelligentRouting
     <>
       <ReportHeader
         title="Intelligent routing"
-        description="Filter by policy to scope health below. Manage constraints in the policies section, or Test a Prompt anytime."
+        description="Filter by policy to scope health below. Manage constraints in Routing policies, or Test a Prompt from Recent routing decisions."
         filters={
           <ReportFilterDropdown
             label="Policy"
@@ -304,47 +325,15 @@ export function IntelligentRouting({ focusPolicies = false }: IntelligentRouting
         meta={
           !showingAll && focused ? (
             <PolicySummary policy={focused} onEdit={openEditFocused} />
-          ) : (
-            <>
-              <HeaderMetaStrong>All policies</HeaderMetaStrong>
-              <span>·</span>
-              <span>{metrics.scopeCaption}</span>
-              <span>·</span>
-              <span>
-                Routed <HeaderMetaStrong>{metrics.requestsRouted}</HeaderMetaStrong>
-              </span>
-              <span>·</span>
-              <span>
-                Avg savings <HeaderMetaStrong>{metrics.averageSavings}</HeaderMetaStrong>
-              </span>
-            </>
-          )
-        }
-        actions={
-          <>
-            <HeaderActionButton
-              startIcon={<Plus size={16} aria-hidden />}
-              onClick={() => openCreate()}
-            >
-              Create policy
-            </HeaderActionButton>
-            <Button size="sm" intent="primary" onClick={() => openTestPrompt()}>
-              Test a Prompt
-            </Button>
-          </>
+          ) : undefined
         }
       />
 
-      <MetricGrid>
+      <RoutingMetricGrid>
         <MetricCard
           label="Requests routed"
           value={metrics.requestsRouted}
           caption={metrics.scopeCaption}
-        />
-        <MetricCard
-          label="Average savings"
-          value={metrics.averageSavings}
-          caption={metrics.averageSavingsCaption}
         />
         <MetricCard
           label="Policies in view"
@@ -352,11 +341,11 @@ export function IntelligentRouting({ focusPolicies = false }: IntelligentRouting
           caption={`${activeInFilter} active`}
         />
         <MetricCard
-          label="Evaluation order"
-          value="Security first"
-          caption="Then governance · then cost / quality"
+          label="Avg savings"
+          value={metrics.averageSavings}
+          caption={metrics.averageSavingsCaption}
         />
-      </MetricGrid>
+      </RoutingMetricGrid>
 
       {latest ? (
         <ReportPanel title="Latest selected route">
@@ -411,6 +400,11 @@ export function IntelligentRouting({ focusPolicies = false }: IntelligentRouting
         <ReportPanel
           title="Routing policies"
           note="Priority runs top-down. Expand a policy for constraints and fallbacks."
+          actions={
+            <HeaderActionButton onClick={() => openCreate()}>
+              Create a policy
+            </HeaderActionButton>
+          }
         >
           <PolicyList
             policies={policies}

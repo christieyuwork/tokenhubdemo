@@ -37,7 +37,7 @@ const JudgementMenuStyles = createGlobalStyle`
 const Strip = styled.section`
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-200);
+  gap: var(--space-150);
   flex-shrink: 0;
   width: 100%;
 

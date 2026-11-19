@@ -31,12 +31,16 @@ import { navGroups } from './shell/nav';
 function resolveNavigation(next: string): {
   section: string;
   focusPolicies?: boolean;
+  openTestPrompt?: boolean;
 } {
   if (next === 'routing' || next === 'intelligent-routing') {
     return { section: 'intelligent-routing' };
   }
   if (next === 'routing-rules' || next === 'routing-policies') {
     return { section: 'intelligent-routing', focusPolicies: true };
+  }
+  if (next === 'test-prompt') {
+    return { section: 'intelligent-routing', openTestPrompt: true };
   }
   return { section: next };
 }
@@ -124,10 +128,12 @@ const Body = styled(SidebarContent)`
 export default function App() {
   const [section, setSection] = useState('home');
   const [focusRoutingPolicies, setFocusRoutingPolicies] = useState(false);
+  const [openRoutingTestPrompt, setOpenRoutingTestPrompt] = useState(false);
 
   function navigateTo(next: string) {
     const resolved = resolveNavigation(next);
     setFocusRoutingPolicies(Boolean(resolved.focusPolicies));
+    setOpenRoutingTestPrompt(Boolean(resolved.openTestPrompt));
     setSection(resolved.section);
   }
 
@@ -173,7 +179,10 @@ export default function App() {
                     switcherLabel="Optimization views"
                   >
                     {section === 'intelligent-routing' ? (
-                      <IntelligentRouting focusPolicies={focusRoutingPolicies} />
+                      <IntelligentRouting
+                        focusPolicies={focusRoutingPolicies}
+                        openTestPrompt={openRoutingTestPrompt}
+                      />
                     ) : null}
                     {section === 'model-analyzer' ? <ModelAnalyzer /> : null}
                     {section === 'caching' ? <Caching /> : null}

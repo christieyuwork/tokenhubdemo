@@ -740,6 +740,13 @@ const FeatureBody = styled.div`
   padding: var(--space-500);
 `;
 
+const FeatureActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-200);
+`;
+
 const FeatureCopy = styled.div`
   display: flex;
   flex: 1 1 auto;
@@ -1037,7 +1044,7 @@ export function Home({ onNavigate }: HomeProps) {
                     Route every request to the right model, infrastructure, and price point.
                   </FeatureText>
                 </FeatureIntro>
-                <div>
+                <FeatureActions>
                   <Button
                     size="sm"
                     endIcon={<SquareArrowOutUpRight aria-hidden />}
@@ -1045,7 +1052,15 @@ export function Home({ onNavigate }: HomeProps) {
                   >
                     Optimization
                   </Button>
-                </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    intent="secondary"
+                    onClick={go('test-prompt')}
+                  >
+                    Test a Prompt
+                  </Button>
+                </FeatureActions>
               </FeatureCopy>
             </FeatureBody>
           </FeatureCard>

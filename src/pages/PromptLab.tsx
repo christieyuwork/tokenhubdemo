@@ -262,9 +262,11 @@ function splashFor(
 export interface PromptLabProps {
   /** Deep-link from Explore / Dashboard ads — opens Test a Prompt or What if. */
   initialMode?: PromptLabMode;
+  /** Cross-app navigation from What if Act steps. */
+  onNavigate?: (section: string) => void;
 }
 
-export function PromptLab({ initialMode }: PromptLabProps) {
+export function PromptLab({ initialMode, onNavigate }: PromptLabProps) {
   const [mode, setMode] = useState<PromptLabMode>(initialMode ?? 'test');
   const [policyId, setPolicyId] = useState<PolicyId>('brightsky-quality');
   const [formOpen, setFormOpen] = useState(false);
@@ -365,6 +367,8 @@ export function PromptLab({ initialMode }: PromptLabProps) {
               <TokenOpsChallenge
                 policyId={policyId}
                 splash={splashFor('whatIf')}
+                onNavigate={onNavigate}
+                onCreatePolicy={handleCreateFromTry}
               />
             </FlowPanel>
           </TabsContent>

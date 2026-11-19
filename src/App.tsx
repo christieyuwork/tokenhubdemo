@@ -195,7 +195,10 @@ export default function App() {
                       />
                     ) : null}
                     {section === 'prompt-lab' ? (
-                      <PromptLab initialMode={promptLabMode} />
+                      <PromptLab
+                        initialMode={promptLabMode}
+                        onNavigate={navigateTo}
+                      />
                     ) : null}
                     {section === 'routing-decisions' ? (
                       <RoutingDecisions focusDecisionId={focusRoutingDecisionId} />

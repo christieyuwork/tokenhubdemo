@@ -204,6 +204,13 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         cta: 'Open',
       },
       {
+        id: 'routing-decisions',
+        title: 'Routing decisions',
+        body: 'Search and filter past decisions, inspect routing trees, and browse the historical catalog.',
+        icon: <GitBranch aria-hidden />,
+        cta: 'Open',
+      },
+      {
         id: 'model-analyzer',
         title: 'Model analyzer',
         body: 'Compare cost of keeping quality while stepping off the highest-priced starting route.',

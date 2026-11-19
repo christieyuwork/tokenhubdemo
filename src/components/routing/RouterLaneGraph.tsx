@@ -17,10 +17,13 @@ const STAR_X = 28;
 const MODEL_X = 590;
 const VIEW_W = 820;
 const LANE_GAP = 42;
+const LANE_GAP_COMPACT = 30;
 /** Room under stage labels so Policy / Security / … clear the first dots. */
 const TOP_PAD = 32;
+const TOP_PAD_COMPACT = 22;
 /** Clearance under the last lane for model label / star caption. */
 const BOTTOM_PAD = 12;
+const BOTTOM_PAD_COMPACT = 8;
 const NODE_R = 6.5;
 const NODE_HIT_R = 14;
 const NODE_RING_R = 10;
@@ -36,10 +39,14 @@ const Wrap = styled.section`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--space-100);
+  gap: var(--space-075);
   justify-content: flex-start;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
 `;
 
 const Header = styled.div`
@@ -103,17 +110,22 @@ const TipBody = styled.text`
 const Graph = styled.div`
   display: flex;
   flex: 1 1 auto;
-  align-items: center;
+  align-items: stretch;
+  justify-content: center;
   min-width: 0;
   min-height: 0;
   width: 100%;
+  overflow: hidden;
 `;
 
 const Svg = styled.svg`
   display: block;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
+  max-width: 100%;
   max-height: 100%;
+  overflow: visible;
 `;
 
 const StageLabel = styled.text`
@@ -256,9 +268,9 @@ function starPoints(cx: number, cy: number, outer = 9, inner = 3.8): string {
   return points.join(' ');
 }
 
-function laneYs(count: number): number[] {
-  if (count <= 0) return [TOP_PAD];
-  return Array.from({ length: count }, (_, i) => TOP_PAD + i * LANE_GAP);
+function laneYs(count: number, topPad: number, laneGap: number): number[] {
+  if (count <= 0) return [topPad];
+  return Array.from({ length: count }, (_, i) => topPad + i * laneGap);
 }
 
 function stageReason(
@@ -323,23 +335,33 @@ function wrapTipLines(text: string, maxChars = 34): string[] {
 interface RouterLaneGraphProps {
   policyId: PolicyId;
   evaluation: PromptEvaluation | null;
+  /** Denser lanes for constrained slots (e.g. expanded table rows). */
+  compact?: boolean;
 }
 
-export function RouterLaneGraph({ policyId, evaluation }: RouterLaneGraphProps) {
+export function RouterLaneGraph({
+  policyId,
+  evaluation,
+  compact = false,
+}: RouterLaneGraphProps) {
   const uid = useId().replace(/:/g, '');
   const idle = !evaluation;
   const [hovered, setHovered] = useState<ActiveNode | null>(null);
   const [pinned, setPinned] = useState<ActiveNode | null>(null);
+
+  const topPad = compact ? TOP_PAD_COMPACT : TOP_PAD;
+  const laneGap = compact ? LANE_GAP_COMPACT : LANE_GAP;
+  const bottomPad = compact ? BOTTOM_PAD_COMPACT : BOTTOM_PAD;
 
   const lanes: RouterLaneResult[] = useMemo(
     () => evaluation?.lanes ?? idleLanesForPolicy(policyId),
     [evaluation, policyId],
   );
 
-  const ys = laneYs(lanes.length);
+  const ys = laneYs(lanes.length, topPad, laneGap);
   const starY = ys.length === 1 ? ys[0] : (ys[0] + ys[ys.length - 1]) / 2;
-  // Last lane sits at TOP_PAD + (n-1)*LANE_GAP — do not add another full LANE_GAP.
-  const viewH = Math.max(ys[ys.length - 1] ?? TOP_PAD, starY + 20) + BOTTOM_PAD;
+  // Last lane sits at topPad + (n-1)*laneGap — do not add another full lane gap.
+  const viewH = Math.max(ys[ys.length - 1] ?? topPad, starY + 20) + bottomPad;
   const routedLane = evaluation?.lanes.find((lane) => lane.isRouted);
   const routedHint = routedLane?.reasons[0]
     ?.replace(/^(policy|security|governance|cost\/quality|router):\s*/i, '')
@@ -443,7 +465,7 @@ export function RouterLaneGraph({ policyId, evaluation }: RouterLaneGraphProps) 
             <StageLabel
               key={col.id}
               x={STAGE_X[index]}
-              y={12}
+              y={compact ? 10 : 12}
               textAnchor="middle"
             >
               {col.label}

@@ -23,6 +23,7 @@ import { PricingAndRates } from './pages/PricingAndRates';
 import { Quotas } from './pages/Quotas';
 import { ReportPage } from './pages/ReportPage';
 import { IntelligentRouting } from './pages/IntelligentRouting';
+import { RoutingDecisions } from './pages/RoutingDecisions';
 import { AppSidebar } from './shell/AppSidebar';
 import { AppTopBar } from './shell/AppTopBar';
 import { navGroups } from './shell/nav';
@@ -129,11 +130,13 @@ export default function App() {
   const [section, setSection] = useState('home');
   const [focusRoutingPolicies, setFocusRoutingPolicies] = useState(false);
   const [openRoutingTestPrompt, setOpenRoutingTestPrompt] = useState(false);
+  const [focusRoutingDecisionId, setFocusRoutingDecisionId] = useState<string | null>(null);
 
-  function navigateTo(next: string) {
+  function navigateTo(next: string, decisionId?: string) {
     const resolved = resolveNavigation(next);
     setFocusRoutingPolicies(Boolean(resolved.focusPolicies));
     setOpenRoutingTestPrompt(Boolean(resolved.openTestPrompt));
+    setFocusRoutingDecisionId(decisionId ?? null);
     setSection(resolved.section);
   }
 
@@ -182,7 +185,11 @@ export default function App() {
                       <IntelligentRouting
                         focusPolicies={focusRoutingPolicies}
                         openTestPrompt={openRoutingTestPrompt}
+                        onNavigate={navigateTo}
                       />
+                    ) : null}
+                    {section === 'routing-decisions' ? (
+                      <RoutingDecisions focusDecisionId={focusRoutingDecisionId} />
                     ) : null}
                     {section === 'model-analyzer' ? <ModelAnalyzer /> : null}
                     {section === 'caching' ? <Caching /> : null}

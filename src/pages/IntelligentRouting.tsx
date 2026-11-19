@@ -1,5 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
+  Badge,
+  Button,
+  Card,
   DataRow,
   HeaderRow,
   IconButton,
@@ -12,6 +15,7 @@ import {
   PolicyFormModal,
   type PolicyFormValues,
 } from '../components/routing/PolicyFormModal';
+import { ConfigSearch } from '../components/config/ConfigPageChrome';
 import { PolicyList } from '../components/routing/PolicyList';
 import { PolicySummary } from '../components/routing/PolicySummary';
 import { RecentDecisionsTable } from '../components/routing/RecentDecisionsTable';
@@ -25,18 +29,15 @@ import {
   POLICY_IMPACT_CATEGORIES,
   POLICY_IMPACT_SERIES,
   POLICY_IMPACT_WEEKLY_TOTALS,
-  promptForDecision,
   trafficShareForPolicies,
   type PolicyId,
   type PromptEvaluation,
-  type RoutingDecisionRecord,
   type RoutingPolicy,
 } from '../data/routingDemo';
 import {
   CellBadge,
   CompactDataCell,
   HeaderActionButton,
-  MetricCard,
   MetricGrid,
   ReportFilterDropdown,
   ReportHeader,
@@ -47,16 +48,16 @@ import {
   reportCol,
 } from './ReportPage';
 
-const ALL = 'all';
-
-type SortKey = 'match' | 'model' | 'why';
+type CatalogSortKey = 'match' | 'model' | 'why';
 type SortDir = 'asc' | 'desc';
 
-const SORT_COLUMNS: { key: SortKey; label: string; wide?: boolean }[] = [
+const CATALOG_COLUMNS: { key: CatalogSortKey; label: string; wide?: boolean }[] = [
   { key: 'match', label: 'Requests that match', wide: true },
   { key: 'model', label: 'Sent to' },
   { key: 'why', label: 'Why', wide: true },
 ];
+
+const ALL = 'all';
 
 const PoliciesSection = styled.div`
   display: flex;
@@ -66,21 +67,26 @@ const PoliciesSection = styled.div`
   scroll-margin-top: var(--space-200);
 `;
 
-const LatestTeaser = styled.p`
+const PanelActions = styled.div`
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: var(--space-100);
-  margin: 0;
-  color: var(--color-text-icon-primary);
-  font-size: var(--type-size-body);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.45;
+  justify-content: flex-end;
+  gap: var(--space-200);
+  flex: 0 0 auto;
 `;
 
-const LatestMeta = styled.span`
-  color: var(--color-text-icon-secondary);
-  font-weight: var(--font-weight-medium);
+const PolicyPanelActions = styled(PanelActions)`
+  /* Keep search + create on one line beside the title/note stack. */
+  @container report-content (max-width: 720px) {
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: stretch;
+
+    & > * {
+      flex: 1 1 auto;
+    }
+  }
 `;
 
 const RoutingMetricGrid = styled(MetricGrid)`
@@ -95,8 +101,68 @@ const RoutingMetricGrid = styled(MetricGrid)`
   }
 `;
 
+const PulseCard = styled(Card)`
+  box-sizing: border-box;
+  min-width: 0;
+`;
+
+const PulseInner = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-050);
+  padding: var(--space-300) var(--space-400);
+`;
+
+const PulseLabel = styled.p`
+  margin: 0;
+  color: var(--color-text-icon-secondary);
+  font-size: var(--type-size-body);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.35;
+`;
+
+const PulseValue = styled.p`
+  margin: 0;
+  color: var(--color-text-icon-primary);
+  font-size: var(--type-size-subtitle);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.35;
+`;
+
+const PulseCaption = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-100);
+  margin: var(--space-100) 0 0;
+  color: var(--color-text-icon-secondary);
+  font-size: var(--type-size-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.35;
+`;
+
 function formatChartLabel(value: number) {
   return `${value.toFixed(2)}M`;
+}
+
+function PulseMetric({
+  label,
+  value,
+  caption,
+}: {
+  label: string;
+  value: string;
+  caption: ReactNode;
+}) {
+  return (
+    <PulseCard>
+      <PulseInner>
+        <PulseLabel>{label}</PulseLabel>
+        <PulseValue>{value}</PulseValue>
+        <PulseCaption>{caption}</PulseCaption>
+      </PulseInner>
+    </PulseCard>
+  );
 }
 
 export interface IntelligentRoutingProps {
@@ -104,11 +170,13 @@ export interface IntelligentRoutingProps {
   focusPolicies?: boolean;
   /** When true, open Test a Prompt after mount (Explore Optimize CTA). */
   openTestPrompt?: boolean;
+  onNavigate?: (section: string, decisionId?: string) => void;
 }
 
 export function IntelligentRouting({
   focusPolicies = false,
   openTestPrompt: openTestPromptOnMount = false,
+  onNavigate,
 }: IntelligentRoutingProps) {
   const policiesSectionRef = useRef<HTMLDivElement>(null);
   const [policies, setPolicies] = useState<RoutingPolicy[]>(() => listPolicies());
@@ -121,8 +189,9 @@ export function IntelligentRouting({
   const [tryOpen, setTryOpen] = useState(false);
   const [seedPrompt, setSeedPrompt] = useState<string | undefined>();
   const [createSeed, setCreateSeed] = useState<PolicyFormValues | null>(null);
-  const [sortKey, setSortKey] = useState<SortKey>('match');
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [catalogSortKey, setCatalogSortKey] = useState<CatalogSortKey>('match');
+  const [catalogSortDir, setCatalogSortDir] = useState<SortDir>('asc');
+  const [policySearch, setPolicySearch] = useState('');
 
   useEffect(() => {
     if (!focusPolicies) return;
@@ -161,13 +230,27 @@ export function IntelligentRouting({
 
   const editing = editId ? policies.find((policy) => policy.id === editId) : null;
   const activeInFilter = filteredPolicies.filter((policy) => policy.status === 'Active').length;
+  const inactiveInFilter = filteredPolicies.length - activeInFilter;
   const metrics = useMemo(
     () => aggregatePolicyMetrics(filteredPolicies),
     [filteredPolicies],
   );
 
-  const recentRows = useMemo(() => decisionsForPolicies(filterIds), [filterIds]);
-  const latest = recentRows[0];
+  const recentRows = useMemo(
+    () => decisionsForPolicies(filterIds).slice(0, 5),
+    [filterIds],
+  );
+
+  const tryPolicyId = (focused?.id ?? 'brightsky-quality') as PolicyId;
+
+  const leadingModel = useMemo(() => {
+    const top = POLICY_IMPACT_SERIES.reduce((best, item) =>
+      item.share > best.share ? item : best,
+    );
+    const label = top.name.replace(/\s+\d+%$/, '');
+    const percent = Math.round(top.share * 100);
+    return { label, percent };
+  }, []);
 
   const trafficShare = trafficShareForPolicies(filterIds);
   const chartTotals = useMemo(
@@ -187,22 +270,22 @@ export function IntelligentRouting({
   const chartYMax = trafficShare >= 0.75 ? 1.5 : trafficShare >= 0.25 ? 0.8 : 0.4;
   const chartYInterval = chartYMax <= 0.4 ? 0.1 : chartYMax <= 0.8 ? 0.2 : 0.5;
 
-  const historicalRows = useMemo(() => {
+  const catalogRows = useMemo(() => {
     return [...HISTORICAL_ROUTES].sort((left, right) => {
-      const a = left[sortKey];
-      const b = right[sortKey];
+      const a = left[catalogSortKey];
+      const b = right[catalogSortKey];
       const cmp = a.localeCompare(b, undefined, { sensitivity: 'base' });
-      return sortDir === 'desc' ? -cmp : cmp;
+      return catalogSortDir === 'desc' ? -cmp : cmp;
     });
-  }, [sortDir, sortKey]);
+  }, [catalogSortDir, catalogSortKey]);
 
-  function handleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir((current) => (current === 'desc' ? 'asc' : 'desc'));
+  function handleCatalogSort(key: CatalogSortKey) {
+    if (catalogSortKey === key) {
+      setCatalogSortDir((current) => (current === 'desc' ? 'asc' : 'desc'));
       return;
     }
-    setSortKey(key);
-    setSortDir('desc');
+    setCatalogSortKey(key);
+    setCatalogSortDir('asc');
   }
 
   function handlePolicyFilterChange(next: string) {
@@ -214,6 +297,25 @@ export function IntelligentRouting({
     setPolicies((prev) =>
       prev.map((policy) => (policy.id === id ? { ...policy, status } : policy)),
     );
+  }
+
+  function handleMovePriority(id: string, direction: 'up' | 'down') {
+    setPolicies((prev) => {
+      const sorted = [...prev].sort((a, b) => a.priorityOrder - b.priorityOrder);
+      const index = sorted.findIndex((policy) => policy.id === id);
+      if (index < 0) return prev;
+      const swapWith = direction === 'up' ? index - 1 : index + 1;
+      if (swapWith < 0 || swapWith >= sorted.length) return prev;
+
+      const next = [...sorted];
+      const current = next[index];
+      next[index] = next[swapWith];
+      next[swapWith] = current;
+      return next.map((policy, order) => ({
+        ...policy,
+        priorityOrder: order + 1,
+      }));
+    });
   }
 
   function openCreate(seed: PolicyFormValues | null = null) {
@@ -298,16 +400,10 @@ export function IntelligentRouting({
     syncFocusPolicy(result.policyId);
   }
 
-  function handleInspect(row: RoutingDecisionRecord) {
-    syncFocusPolicy(row.policyId);
-    openTestPrompt(promptForDecision(row));
-  }
-
-  const tryPolicyId = (focused?.id ?? 'brightsky-quality') as PolicyId;
   const showingAll = policyFilter === ALL;
   const chartNote = showingAll
-    ? 'Weekly request volume by selected model across all policies.'
-    : 'Weekly request volume by selected model for the filtered policy.';
+    ? `Leading share: ${leadingModel.label} (${leadingModel.percent}%).`
+    : `Filtered policy · leading share: ${leadingModel.label} (${leadingModel.percent}%).`;
 
   return (
     <>
@@ -330,36 +426,31 @@ export function IntelligentRouting({
       />
 
       <RoutingMetricGrid>
-        <MetricCard
+        <PulseMetric
           label="Requests routed"
           value={metrics.requestsRouted}
           caption={metrics.scopeCaption}
         />
-        <MetricCard
+        <PulseMetric
           label="Policies in view"
           value={String(filteredPolicies.length)}
-          caption={`${activeInFilter} active`}
+          caption={
+            <>
+              <Badge color="green" tone="subtle" dot={false}>
+                {activeInFilter} active
+              </Badge>
+              <Badge color="disabled" tone="subtle" dot={false}>
+                {inactiveInFilter} inactive
+              </Badge>
+            </>
+          }
         />
-        <MetricCard
+        <PulseMetric
           label="Avg savings"
           value={metrics.averageSavings}
           caption={metrics.averageSavingsCaption}
         />
       </RoutingMetricGrid>
-
-      {latest ? (
-        <ReportPanel title="Latest selected route">
-          <LatestTeaser>
-            <CellBadge color={modelBadgeColor(latest.selectedModel)} tone="subtle" dot={false}>
-              {latest.selectedModel}
-            </CellBadge>
-            <LatestMeta>
-              {' '}
-              · {latest.hosting} · {latest.routingReason} · {latest.timestamp}
-            </LatestMeta>
-          </LatestTeaser>
-        </ReportPanel>
-      ) : null}
 
       <ReportPanel title="Where traffic goes" note={chartNote}>
         <StackedBarChart
@@ -370,7 +461,7 @@ export function IntelligentRouting({
           yMin={0}
           yMax={chartYMax}
           yInterval={chartYInterval}
-          height={220}
+          height={290}
           showYAxis={false}
           ariaLabel="Requests by model served in millions over the last four weeks"
         />
@@ -378,18 +469,28 @@ export function IntelligentRouting({
 
       <ReportPanel
         title="Recent routing decisions"
-        note={
-          showingAll
-            ? 'Operational pulse across all policies. Inspect opens Test a Prompt for that scenario.'
-            : 'Operational pulse for the filtered policy. Inspect opens Test a Prompt for that scenario.'
-        }
+        note="Latest five decisions. Expand a row for the routing tree, or View all for search and filters."
         actions={
-          <HeaderActionButton onClick={() => openTestPrompt()}>
-            Test a Prompt
-          </HeaderActionButton>
+          <PanelActions>
+            <HeaderActionButton type="button" onClick={() => openTestPrompt()}>
+              Test a Prompt
+            </HeaderActionButton>
+            <Button
+              type="button"
+              size="sm"
+              intent="primary"
+              onClick={() => onNavigate?.('routing-decisions')}
+            >
+              View all
+            </Button>
+          </PanelActions>
         }
       >
-        <RecentDecisionsTable rows={recentRows} onInspect={handleInspect} />
+        <RecentDecisionsTable
+          rows={recentRows}
+          compact
+          onViewDetails={(row) => onNavigate?.('routing-decisions', row.id)}
+        />
       </ReportPanel>
 
       <PoliciesSection
@@ -399,86 +500,98 @@ export function IntelligentRouting({
       >
         <ReportPanel
           title="Routing policies"
-          note="Priority runs top-down. Expand a policy for constraints and fallbacks."
+          note="Priority runs top-down — use the arrows to reorder. Expand a policy for constraints and fallbacks."
           actions={
-            <HeaderActionButton onClick={() => openCreate()}>
-              Create a policy
-            </HeaderActionButton>
+            <PolicyPanelActions>
+              <ConfigSearch
+                value={policySearch}
+                onChange={setPolicySearch}
+                placeholder="Search policies"
+                label="Search policies"
+              />
+              <HeaderActionButton type="button" onClick={() => openCreate()}>
+                Create a policy
+              </HeaderActionButton>
+            </PolicyPanelActions>
           }
         >
           <PolicyList
             policies={policies}
-            onEdit={openEdit}
+            filterQuery={policySearch}
             onStatusChange={handleStatusChange}
+            onMovePriority={handleMovePriority}
           />
         </ReportPanel>
-
-        <ReportPanel title="Historical routing catalog">
-          <ReportTable
-            aria-label="Historical routing catalog"
-            $cols={[reportCol.widePlus, reportCol.compact, reportCol.widePlus].join(' ')}
-            header={
-              <HeaderRow>
-                {SORT_COLUMNS.map(({ key, label, wide }) => {
-                  const sorted = sortKey === key;
-                  const nextDir = sorted && sortDir === 'desc' ? 'ascending' : 'descending';
-                  return (
-                    <SortableHeaderCell
-                      key={key}
-                      $wide={wide}
-                      active={sorted}
-                      aria-sort={
-                        sorted
-                          ? sortDir === 'desc'
-                            ? 'descending'
-                            : 'ascending'
-                          : 'none'
-                      }
-                      onClick={() => handleSort(key)}
-                      actions={
-                        sorted ? (
-                          <IconButton
-                            size="xs"
-                            variant="tonal"
-                            label={`Sort ${label} ${nextDir}`}
-                            icon={sortDir === 'asc' ? <ArrowUp /> : <ArrowDown />}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleSort(key);
-                            }}
-                          />
-                        ) : undefined
-                      }
-                    >
-                      {label}
-                    </SortableHeaderCell>
-                  );
-                })}
-              </HeaderRow>
-            }
-          >
-            {historicalRows.map((row) => (
-              <DataRow key={row.id} selectable={false}>
-                <WideDataCell>
-                  <CellBadge color="secondary" tone="subtle" dot={false}>
-                    {row.match}
-                  </CellBadge>
-                </WideDataCell>
-                <CompactDataCell>
-                  <CellBadge color={modelBadgeColor(row.model)} tone="subtle" dot={false}>
-                    {row.model}
-                  </CellBadge>
-                </CompactDataCell>
-                <WideDataCell>
-                  <CellBadge color="secondary" tone="subtle" dot={false}>
-                    {row.why}
-                  </CellBadge>
-                </WideDataCell>
-              </DataRow>
-            ))}
-          </ReportTable>
-        </ReportPanel>
       </PoliciesSection>
+
+      <ReportPanel
+        title="Historical routing catalog"
+        note="Reference patterns for common request types — not individual timed decisions."
+      >
+        <ReportTable
+          aria-label="Historical routing catalog"
+          $cols={[reportCol.widePlus, reportCol.compact, reportCol.widePlus].join(' ')}
+          header={
+            <HeaderRow>
+              {CATALOG_COLUMNS.map(({ key, label, wide }) => {
+                const sorted = catalogSortKey === key;
+                const nextDir = sorted && catalogSortDir === 'desc' ? 'ascending' : 'descending';
+                return (
+                  <SortableHeaderCell
+                    key={key}
+                    $wide={wide}
+                    active={sorted}
+                    aria-sort={
+                      sorted
+                        ? catalogSortDir === 'desc'
+                          ? 'descending'
+                          : 'ascending'
+                        : 'none'
+                    }
+                    onClick={() => handleCatalogSort(key)}
+                    actions={
+                      sorted ? (
+                        <IconButton
+                          size="xs"
+                          variant="tonal"
+                          label={`Sort ${label} ${nextDir}`}
+                          icon={catalogSortDir === 'asc' ? <ArrowUp /> : <ArrowDown />}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleCatalogSort(key);
+                          }}
+                        />
+                      ) : undefined
+                    }
+                  >
+                    {label}
+                  </SortableHeaderCell>
+                );
+              })}
+            </HeaderRow>
+          }
+        >
+          {catalogRows.map((row) => (
+            <DataRow key={row.id} selectable={false}>
+              <WideDataCell>
+                <CellBadge color="secondary" tone="subtle" dot={false}>
+                  {row.match}
+                </CellBadge>
+              </WideDataCell>
+              <CompactDataCell>
+                <CellBadge color={modelBadgeColor(row.model)} tone="subtle" dot={false}>
+                  {row.model}
+                </CellBadge>
+              </CompactDataCell>
+              <WideDataCell>
+                <CellBadge color="secondary" tone="subtle" dot={false}>
+                  {row.why}
+                </CellBadge>
+              </WideDataCell>
+            </DataRow>
+          ))}
+        </ReportTable>
+      </ReportPanel>
 
       <PolicyFormModal
         open={formOpen}

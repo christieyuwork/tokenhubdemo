@@ -321,6 +321,114 @@ const ReportDropdownMenuStyles = createGlobalStyle`
   }
 `;
 
+/**
+ * Full-width filter strip under the title/description inside the gradient
+ * banner (Routing decisions and other dense filter sets).
+ */
+const FiltersBelow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  /* Row gap needs more room than the inline gutter when Date range wraps under Search. */
+  column-gap: ${FILTER_GUTTER};
+  row-gap: var(--space-300);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 var(--space-500) var(--space-500);
+
+  /* Search / free-text grows; dropdowns keep locked widths. */
+  & > *:has(input:not([placeholder='MM/DD/YY'])) {
+    flex: 1 1 calc(var(--space-1000) * 3);
+    min-width: min(100%, calc(var(--space-1000) * 2));
+    max-width: 100%;
+  }
+
+  & > *:has(input[placeholder='MM/DD/YY']) {
+    flex: 0 1 auto;
+    box-sizing: border-box;
+    width: ${FILTER_DATE_WIDTH};
+    min-width: min(100%, ${FILTER_DATE_WIDTH});
+    max-width: 100%;
+  }
+
+  & > *:has(input[placeholder='MM/DD/YY']) > * {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    align-items: stretch;
+  }
+
+  & > *:has(input[placeholder='MM/DD/YY']) *:has(> input[placeholder='MM/DD/YY']) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    flex: 1 1 auto;
+  }
+
+  & > *:has(input[placeholder='MM/DD/YY']) input[placeholder='MM/DD/YY'] {
+    box-sizing: border-box;
+    flex: 1 1 0;
+    width: auto;
+    min-width: ${FILTER_DATE_FIELD_MIN};
+  }
+
+  & > :not(:has(input)) {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: min(100%, ${FILTER_MAX_WIDTH});
+  }
+
+  & [role='combobox'] {
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    height: var(--space-700);
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-align: left;
+  }
+
+  & [role='combobox'] > span:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+  }
+
+  & [role='combobox'] > span:last-child {
+    flex: 0 0 auto;
+    align-self: center;
+  }
+
+  @container report-header (max-width: 720px) {
+    & > *:has(input[placeholder='MM/DD/YY']) {
+      flex: 1 1 100%;
+      width: 100%;
+      min-width: 0;
+    }
+
+    & > :not(:has(input)) {
+      flex: 1 1 calc((100% - ${FILTER_GUTTER}) / 2);
+      max-width: 100%;
+    }
+  }
+
+  @container report-header (max-width: 480px) {
+    & > * {
+      flex: 1 1 100%;
+      width: auto;
+      min-width: 0;
+      max-width: 100%;
+    }
+  }
+`;
+
 const Filters = styled.div`
   display: flex;
   flex: 0 1 auto;
@@ -650,14 +758,27 @@ interface ReportHeaderProps {
   title: string;
   description: string;
   filters?: ReactNode;
+  /**
+   * `end` — filters sit beside the title (default report pages).
+   * `below` — filters sit under the title inside the same blue banner.
+   */
+  filtersPlacement?: 'end' | 'below';
   /** Optional leading summary on the below-banner row (shares the line with actions). */
   meta?: ReactNode;
   /** Optional CTAs rendered just below the banner, right-justified (e.g. Add rate). */
   actions?: ReactNode;
 }
 
-export function ReportHeader({ title, description, filters, meta, actions }: ReportHeaderProps) {
+export function ReportHeader({
+  title,
+  description,
+  filters,
+  filtersPlacement = 'end',
+  meta,
+  actions,
+}: ReportHeaderProps) {
   const showActionRow = Boolean(meta || actions);
+  const filtersBelow = filtersPlacement === 'below';
 
   return (
     <HeaderStack>
@@ -668,8 +789,13 @@ export function ReportHeader({ title, description, filters, meta, actions }: Rep
             <Title>{title}</Title>
             <Description>{description}</Description>
           </Titles>
-          {filters ? <Filters>{filters}</Filters> : null}
+          {filters && !filtersBelow ? <Filters>{filters}</Filters> : null}
         </HeaderInner>
+        {filters && filtersBelow ? (
+          <FiltersBelow role="search" aria-label="Decision filters">
+            {filters}
+          </FiltersBelow>
+        ) : null}
       </HeaderCard>
       {showActionRow ? (
         <HeaderActions>
@@ -718,7 +844,7 @@ interface ReportPanelProps {
 
 const SectionHeader = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-300);
   min-width: 0;
@@ -729,6 +855,14 @@ const SectionHeader = styled.div`
     flex: 0 1 auto;
     min-width: 0;
   }
+`;
+
+const SectionIntro = styled.div`
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-100);
+  min-width: 0;
 `;
 
 const SectionNote = styled.p`
@@ -744,10 +878,12 @@ export function ReportPanel({ title, note, actions, children }: ReportPanelProps
     <PanelCard>
       <SectionInner>
         <SectionHeader>
-          <SectionTitle>{title}</SectionTitle>
+          <SectionIntro>
+            <SectionTitle>{title}</SectionTitle>
+            {note ? <SectionNote>{note}</SectionNote> : null}
+          </SectionIntro>
           {actions}
         </SectionHeader>
-        {note ? <SectionNote>{note}</SectionNote> : null}
         {children}
       </SectionInner>
     </PanelCard>
@@ -828,14 +964,33 @@ const wrappingBadgeCss = css`
 /**
  * Table / dense-layout Badge. Prefer this over raw cake& Badge anywhere a
  * label can wrap or sit in a constrained column.
+ * Secondary (gray) washes carry no meaning — drop the fill and read as text.
  */
 export const CellBadge = styled(Badge)`
   && {
     ${wrappingBadgeCss}
+
+    ${({ color = 'primary', tone = 'solid' }) =>
+      color === 'secondary' && tone === 'subtle'
+        ? css`
+            background: transparent;
+            padding-block: 0;
+            padding-inline: 0;
+            border-radius: 0;
+            font-weight: var(--font-weight-medium);
+            color: var(--color-text-icon-primary);
+
+            :root[data-theme='win hct'] &,
+            [data-theme='win hct'] & {
+              background: transparent;
+              color: var(--color-text-icon-primary);
+            }
+          `
+        : null}
   }
 `;
 
-/** Secondary/subtle CellBadge used for plain values in report tables. */
+/** Plain table value — secondary CellBadge with no gray fill. */
 export function ValueBadge({ children }: { children: ReactNode }) {
   return (
     <CellBadge color="secondary" tone="subtle" dot={false}>

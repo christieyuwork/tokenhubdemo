@@ -1,6 +1,6 @@
-import { useId, useState } from 'react';
-import { Button, Switch } from '@cake-admin/cakeand';
-import { ChevronDown } from 'lucide-react';
+import { useId, useMemo, useState } from 'react';
+import { Button, IconButton, Switch } from '@cake-admin/cakeand';
+import { ArrowDown, ArrowUp, ChevronDown } from 'lucide-react';
 import styled from 'styled-components';
 import type { RoutingPolicy } from '../../data/routingDemo';
 import { PolicyDetail } from './PolicyDetail';
@@ -42,9 +42,16 @@ const Header = styled.div`
   min-width: 0;
 `;
 
-const PriorityMark = styled.div`
+const PriorityCluster = styled.div`
   display: flex;
   flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-100);
+`;
+
+const PriorityMark = styled.div`
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -69,6 +76,13 @@ const PriorityLabel = styled.span`
   line-height: 1.2;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+`;
+
+const MoveControls = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-050);
 `;
 
 const HeaderCopy = styled.div`
@@ -190,15 +204,58 @@ const Chevron = styled(ChevronDown)<{ $open: boolean }>`
   }
 `;
 
+export type PolicyMoveDirection = 'up' | 'down';
+
+const Empty = styled.p`
+  margin: 0;
+  color: var(--color-text-icon-secondary);
+  font-size: var(--type-size-body);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+`;
+
 interface PolicyListProps {
   policies: RoutingPolicy[];
-  onEdit: (id: string) => void;
+  /** Filters the visible list; move up/down still uses full priority order. */
+  filterQuery?: string;
   onStatusChange: (id: string, status: RoutingPolicy['status']) => void;
+  onMovePriority: (id: string, direction: PolicyMoveDirection) => void;
 }
 
-export function PolicyList({ policies, onEdit, onStatusChange }: PolicyListProps) {
+export function PolicyList({
+  policies,
+  filterQuery = '',
+  onStatusChange,
+  onMovePriority,
+}: PolicyListProps) {
   const baseId = useId();
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
+
+  const ordered = useMemo(
+    () => [...policies].sort((a, b) => a.priorityOrder - b.priorityOrder),
+    [policies],
+  );
+
+  const visible = useMemo(() => {
+    const normalized = filterQuery.trim().toLowerCase();
+    if (!normalized) return ordered;
+    return ordered.filter((policy) => {
+      const haystack = [
+        policy.name,
+        policy.scope,
+        policy.status,
+        policy.infrastructureRequirement,
+        policy.costPreference,
+        policy.latencyTarget,
+        policy.fallback,
+        ...policy.eligibleModels,
+        ...policy.eligibleHosting,
+      ]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(normalized);
+    });
+  }, [filterQuery, ordered]);
 
   function toggleExpanded(id: string) {
     setExpandedIds((prev) =>
@@ -206,21 +263,56 @@ export function PolicyList({ policies, onEdit, onStatusChange }: PolicyListProps
     );
   }
 
+  if (visible.length === 0) {
+    return (
+      <Empty role="status">
+        {filterQuery.trim()
+          ? 'No policies match this search.'
+          : 'No routing policies yet.'}
+      </Empty>
+    );
+  }
+
   return (
     <List aria-label="Routing policies">
-      {policies.map((policy) => {
+      {visible.map((policy) => {
         const open = expandedIds.includes(policy.id);
         const detailsId = `${baseId}-${policy.id}-details`;
         const active = policy.status === 'Active';
+        const fullIndex = ordered.findIndex((item) => item.id === policy.id);
+        const atTop = fullIndex <= 0;
+        const atBottom = fullIndex < 0 || fullIndex >= ordered.length - 1;
 
         return (
           <Card key={policy.id} $active={active}>
             <CardBody>
               <Header>
-                <PriorityMark aria-label={`Priority ${policy.priorityOrder}`}>
-                  <PriorityValue>{policy.priorityOrder}</PriorityValue>
-                  <PriorityLabel>Priority</PriorityLabel>
-                </PriorityMark>
+                <PriorityCluster>
+                  <PriorityMark aria-label={`Priority ${policy.priorityOrder}`}>
+                    <PriorityValue>{policy.priorityOrder}</PriorityValue>
+                    <PriorityLabel>Priority</PriorityLabel>
+                  </PriorityMark>
+                  <MoveControls>
+                    <IconButton
+                      size="xs"
+                      intent="secondary"
+                      variant="tonal"
+                      label={`Move ${policy.name} up in priority`}
+                      icon={<ArrowUp aria-hidden />}
+                      disabled={atTop}
+                      onClick={() => onMovePriority(policy.id, 'up')}
+                    />
+                    <IconButton
+                      size="xs"
+                      intent="secondary"
+                      variant="tonal"
+                      label={`Move ${policy.name} down in priority`}
+                      icon={<ArrowDown aria-hidden />}
+                      disabled={atBottom}
+                      onClick={() => onMovePriority(policy.id, 'down')}
+                    />
+                  </MoveControls>
+                </PriorityCluster>
                 <HeaderCopy>
                   <Name>{policy.name}</Name>
                   <Scope>{policy.scope}</Scope>
@@ -258,14 +350,6 @@ export function PolicyList({ policies, onEdit, onStatusChange }: PolicyListProps
               <Footer>
                 <Updated>Updated {policy.lastModified}</Updated>
                 <Actions>
-                  <Button
-                    size="sm"
-                    intent="secondary"
-                    variant="outline"
-                    onClick={() => onEdit(policy.id)}
-                  >
-                    Edit
-                  </Button>
                   <Button
                     size="sm"
                     intent="secondary"

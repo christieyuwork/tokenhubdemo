@@ -21,6 +21,7 @@ import {
   Zap,
 } from 'lucide-react';
 import styled from 'styled-components';
+import { ExploreLabBanner } from '../components/LabAds';
 import { PRIMARY_POLICY_NAME, PRIMARY_ROUTING_SCENARIO } from '../data/scenarioEconomics';
 
 export type CategoryId =
@@ -200,6 +201,13 @@ const CATEGORIES: Record<CategoryId, CategoryDef> = {
         id: 'intelligent-routing',
         title: 'Intelligent routing',
         body: 'Monitor policy health, manage routing policies on the same page, and Test a Prompt.',
+        icon: <GitBranch aria-hidden />,
+        cta: 'Open',
+      },
+      {
+        id: 'prompt-lab',
+        title: 'Prompt lab',
+        body: 'Test a Prompt on the routing map, explore What if economics, or plan scenarios in chat.',
         icon: <GitBranch aria-hidden />,
         cta: 'Open',
       },
@@ -545,13 +553,13 @@ const MetricIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   color: var(--color-text-icon-secondary);
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 `;
 
@@ -645,8 +653,8 @@ const ActionIcon = styled.div`
   color: var(--color-text-icon-primary);
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 `;
 
@@ -763,6 +771,10 @@ export function CategoryLanding({ category, onNavigate }: CategoryLandingProps) 
             </MetricCard>
           ))}
         </MetricGrid>
+
+        {category === 'optimization' ? (
+          <ExploreLabBanner onWhatIf={go('what-if')} />
+        ) : null}
 
         <SectionCard role="region" aria-label={`${def.title} views`}>
           <SectionInner>

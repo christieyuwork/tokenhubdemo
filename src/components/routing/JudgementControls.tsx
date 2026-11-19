@@ -28,9 +28,11 @@ const JudgementMenuStyles = createGlobalStyle`
     box-sizing: border-box;
     height: auto;
     min-height: var(--space-700);
+    justify-content: flex-start;
     white-space: normal;
     overflow-wrap: anywhere;
     padding-block: var(--space-100);
+    text-align: left;
   }
 `;
 
@@ -55,6 +57,26 @@ const Field = styled.div`
 
   & > * {
     max-width: 100%;
+  }
+
+  /* cake& Dropdown centers the value by default — left-align for long judgement labels. */
+  & [role='combobox'] {
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  & [role='combobox'] > span:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  & [role='combobox'] > span:last-child {
+    flex: 0 0 auto;
+    align-self: center;
   }
 `;
 

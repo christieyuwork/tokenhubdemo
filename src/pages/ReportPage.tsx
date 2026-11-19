@@ -1206,6 +1206,50 @@ export const CompactTableShell = styled.div`
   }
 `;
 
+/**
+ * Expandable table row group (Cost by Trace, Routing decisions).
+ * Collapsed: display:contents so zebra rows stay in table flow.
+ * Expanded: frames the summary row + detail panel as one focused unit.
+ */
+export const ExpandableRowGroup = styled.div<{ $expanded?: boolean }>`
+  ${({ $expanded }) =>
+    $expanded
+      ? css`
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          width: 100%;
+          min-width: 0;
+          margin-block: var(--space-150);
+          overflow: hidden;
+          border: var(--stroke-100) solid var(--color-stroke-border);
+          border-left: var(--stroke-300) solid var(--color-primary-primary);
+          border-radius: var(--radius-150);
+          background: var(--color-surfaces-container);
+          box-shadow: var(--elevation-1);
+        `
+      : css`
+          display: contents;
+        `}
+`;
+
+/** Detail block under an expanded summary row. Pair with ExpandableRowGroup. */
+export const ExpandDetailPanel = styled.div<{ $compact?: boolean }>`
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ $compact }) => ($compact ? 'var(--space-100)' : 'var(--space-300)')};
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: ${({ $compact }) =>
+    $compact
+      ? 'var(--space-150) var(--space-300) var(--space-150) var(--space-700)'
+      : 'var(--space-300) var(--space-300) var(--space-300) var(--space-800)'};
+  border-top: var(--stroke-100) solid var(--color-stroke-border-low);
+  background: var(--color-surfaces-on-container);
+`;
+
 /** Text-heavy columns — wide $cols track, or leftover width when $cols is omitted. */
 export const WideDataCell = styled(DataCell)`
   ${wideColumnCss}

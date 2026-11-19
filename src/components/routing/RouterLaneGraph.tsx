@@ -16,17 +16,17 @@ const STAGE_X = [200, 320, 440, 560] as const;
 const STAR_X = 28;
 const MODEL_X = 590;
 const VIEW_W = 820;
-const LANE_GAP = 42;
+const LANE_GAP = 52;
 const LANE_GAP_COMPACT = 30;
 /** Room under stage labels so Policy / Security / … clear the first dots. */
-const TOP_PAD = 32;
+const TOP_PAD = 36;
 const TOP_PAD_COMPACT = 22;
 /** Clearance under the last lane for model label / star caption. */
-const BOTTOM_PAD = 12;
+const BOTTOM_PAD = 14;
 const BOTTOM_PAD_COMPACT = 8;
-const NODE_R = 6.5;
-const NODE_HIT_R = 14;
-const NODE_RING_R = 10;
+const NODE_R = 8;
+const NODE_HIT_R = 16;
+const NODE_RING_R = 12;
 
 type NodeVisual = 'idle' | 'pass' | 'green' | 'red' | 'grey';
 
@@ -39,8 +39,9 @@ const Wrap = styled.section`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--space-075);
-  justify-content: flex-start;
+  gap: var(--space-150);
+  align-items: stretch;
+  justify-content: center;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -53,15 +54,18 @@ const Header = styled.div`
   display: flex;
   flex-shrink: 0;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-050) var(--space-150);
+  gap: var(--space-100) var(--space-200);
+  width: 100%;
 `;
 
 const HeaderText = styled.div`
   display: flex;
+  flex: 1 1 12rem;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-start;
   gap: var(--space-050) var(--space-150);
   min-width: 0;
 `;
@@ -110,7 +114,7 @@ const TipBody = styled.text`
 const Graph = styled.div`
   display: flex;
   flex: 1 1 auto;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   min-width: 0;
   min-height: 0;
@@ -122,10 +126,25 @@ const Svg = styled.svg`
   display: block;
   box-sizing: border-box;
   width: 100%;
-  height: 100%;
-  max-width: 100%;
+  height: auto;
+  max-width: 60rem;
   max-height: 100%;
+  margin-inline: auto;
   overflow: visible;
+`;
+
+const Legend = styled.ul`
+  display: flex;
+  flex-wrap: wrap;
+  flex: 0 1 auto;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-050) var(--space-150);
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 `;
 
 const StageLabel = styled.text`
@@ -161,16 +180,6 @@ const NodeGroup = styled.g`
     stroke: var(--color-primary-primary);
     stroke-opacity: 1;
   }
-`;
-
-const Legend = styled.ul`
-  display: flex;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-  gap: var(--space-050) var(--space-150);
-  margin: 0;
-  padding: 0;
-  list-style: none;
 `;
 
 const LegendItem = styled.li`

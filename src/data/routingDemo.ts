@@ -828,7 +828,7 @@ export const COST_QUALITY_OPTIONS = [
     label: 'Easy → cheapest · else highest quality',
   },
   { value: 'always-cheap', label: 'Always use the cheapest model' },
-  { value: 'always-one', label: 'Always use one model' },
+  { value: 'always-one', label: 'Always use the highest-quality model' },
 ] as const;
 
 export const PII_DETECTOR_OPTIONS = [
@@ -902,9 +902,10 @@ function selectByObjective(
 ): string {
   if (eligible.length === 0) return fallbackSelectedId;
   if (objective === 'always-one') {
-    return (
-      eligible.find((c) => c.id === fallbackSelectedId)?.id ?? eligible[0].id
-    );
+    // Always pin to the single highest-quality eligible model.
+    return [...eligible].sort(
+      (a, b) => b.quality - a.quality || a.costPerRequest - b.costPerRequest,
+    )[0].id;
   }
   if (objective === 'always-cheap') {
     return [...eligible].sort((a, b) => a.costPerRequest - b.costPerRequest)[0].id;
@@ -913,7 +914,10 @@ function selectByObjective(
   if (request.complexity === 'Low') {
     return [...eligible].sort((a, b) => a.costPerRequest - b.costPerRequest)[0].id;
   }
-  return [...eligible].sort((a, b) => b.quality - a.quality)[0].id;
+  return (
+    eligible.find((c) => c.id === fallbackSelectedId)?.id ??
+    [...eligible].sort((a, b) => b.quality - a.quality)[0].id
+  );
 }
 
 function resolveTestRequestId(policyId: PolicyId, sensitive: boolean): TestRequestId {
@@ -996,6 +1000,53 @@ function laneForCandidate(
   };
 }
 
+function rejectedEvaluation(
+  prompt: string,
+  policyId: PolicyId,
+  testRequestId: TestRequestId,
+  sensitive: boolean,
+  candidates: CandidateRoute[],
+  judgement: TryJudgement,
+  blockAt: 'security' | 'governance',
+  statusMessage: string,
+  reasons: string[],
+): PromptEvaluation {
+  const lanes = candidates.map((c) => {
+    const nodes: Record<RouterColumn, LaneNodeState> = {
+      policy: 'Eligible',
+      security: blockAt === 'security' ? 'Blocked' : 'Eligible',
+      governance: blockAt === 'governance' ? 'Blocked' : 'NotSelected',
+      costQuality: 'NotSelected',
+    };
+    if (blockAt === 'security') {
+      nodes.governance = 'NotSelected';
+    }
+    return {
+      candidateId: c.id,
+      model: c.model,
+      hosting: c.hosting,
+      quality: c.quality,
+      latencyMs: c.latencyMs,
+      costPerRequest: c.costPerRequest,
+      nodes,
+      reasons,
+      isRouted: false,
+    } satisfies RouterLaneResult;
+  });
+
+  return {
+    prompt,
+    policyId,
+    testRequestId,
+    sensitive,
+    selectedId: '',
+    selectedModel: '—',
+    lanes,
+    statusMessage,
+    judgement,
+  };
+}
+
 /**
  * Deterministic try-request evaluation for the router overlay.
  * Maps free-text prompts onto inventory candidate pools (no live API).
@@ -1016,40 +1067,38 @@ export function evaluatePrompt(
 
   const patternHit = securityPatternHit(trimmed, judgement.securityPatterns);
   if (patternHit) {
-    const lanes = request.candidates.map((c) => {
-      const nodes: Record<RouterColumn, LaneNodeState> = {
-        policy: 'Eligible',
-        security: 'Blocked',
-        governance: 'NotSelected',
-        costQuality: 'NotSelected',
-      };
-      return {
-        candidateId: c.id,
-        model: c.model,
-        hosting: c.hosting,
-        quality: c.quality,
-        latencyMs: c.latencyMs,
-        costPerRequest: c.costPerRequest,
-        nodes,
-        reasons: [
-          `security: ${patternHit} matched — request rejected`,
-          'router: not selected; security pattern blocked the request',
-        ],
-        isRouted: false,
-      } satisfies RouterLaneResult;
-    });
-
-    return {
-      prompt: trimmed,
-      policyId: resolvedPolicyId,
+    return rejectedEvaluation(
+      trimmed,
+      resolvedPolicyId,
       testRequestId,
-      sensitive: sensitivePath,
-      selectedId: '',
-      selectedModel: '—',
-      lanes,
-      statusMessage: `Security rejected the request (${patternHit}).`,
+      sensitivePath,
+      request.candidates,
       judgement,
-    };
+      'security',
+      `Security rejected the request (${patternHit}).`,
+      [
+        `security: ${patternHit} matched — request rejected`,
+        'router: not selected; security pattern blocked the request',
+      ],
+    );
+  }
+
+  // Webhook detector rejects PII outright (semantic routes to inside models instead).
+  if (hasPii && judgement.piiDetector === 'webhook') {
+    return rejectedEvaluation(
+      trimmed,
+      resolvedPolicyId,
+      testRequestId,
+      sensitivePath,
+      request.candidates,
+      judgement,
+      'governance',
+      'Governance webhook rejected the request (PII).',
+      [
+        'governance: webhook signaled PII — request rejected',
+        'router: not selected; switch to semantic PII detection to route inside models',
+      ],
+    );
   }
 
   const adjusted = applyJudgementToCandidates(
@@ -1114,13 +1163,34 @@ export function evaluatePrompt(
     selectedId,
     selectedModel: selected?.model ?? '—',
     lanes,
-    statusMessage: hasPii
-      ? judgement.piiDetector === 'webhook'
-        ? 'Governance webhook signaled PII — inside models only.'
-        : 'PII detected — governance kept inside models.'
-      : 'Request evaluated against the active judgement.',
+    statusMessage: buildStatusMessage(hasPii, judgement, selected?.model),
     judgement,
   };
+}
+
+function buildStatusMessage(
+  hasPii: boolean,
+  judgement: TryJudgement,
+  selectedModel: string | undefined,
+): string {
+  const model = selectedModel ?? 'an eligible model';
+  const objective =
+    judgement.costQuality === 'always-cheap'
+      ? 'Always cheapest'
+      : judgement.costQuality === 'always-one'
+        ? 'Single high-quality model'
+        : 'Easy → cheap · else quality';
+
+  if (hasPii && judgement.governance === 'pii-inside-only') {
+    return `PII detected — ${objective} routed to ${model} on inside hosting.`;
+  }
+  if (hasPii && judgement.governance === 'off') {
+    return `PII present but governance is off — ${objective} routed to ${model}.`;
+  }
+  if (judgement.piiDetector === 'none') {
+    return `PII detector off — ${objective} routed to ${model}.`;
+  }
+  return `${objective} routed to ${model}.`;
 }
 
 /** Re-rank an existing evaluation when Cost / Quality / Latency priorities change. */

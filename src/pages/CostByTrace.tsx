@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   DataCell,
   DataRow,
@@ -14,6 +14,8 @@ import styled from 'styled-components';
 import { modelBadgeColor } from '../data/modelColors';
 import {
   CellBadge,
+  ExpandableRowGroup,
+  ExpandDetailPanel,
   MetricCard,
   MetricGrid,
   ReportHeader,
@@ -277,19 +279,6 @@ const SearchField = styled.div`
   width: calc(var(--space-1000) * 4);
   max-width: 100%;
   min-width: 0;
-`;
-
-const ExpandPanel = styled.div`
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-300);
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  padding: var(--space-300) var(--space-300) var(--space-300) var(--space-800);
-  border-bottom: var(--stroke-100) solid var(--color-stroke-border-low);
-  background: var(--color-surfaces-container);
 `;
 
 const ExpandTitle = styled.div`
@@ -577,12 +566,19 @@ export function CostByTrace() {
             </HeaderRow>
           }
         >
-          {rows.map(({ row, summary }) => {
+          {rows.map(({ row, summary }, index) => {
             const expanded = expandedId === row.id;
             const stepTotals = totalsOf(row.steps);
+            const stripe = index % 2 === 0 ? 'default' : 'inverse';
             return (
-              <Fragment key={row.id}>
-                <DataRow selectable={false}>
+              <ExpandableRowGroup key={row.id} $expanded={expanded}>
+                <DataRow
+                  selectable={false}
+                  stripe={stripe}
+                  selected={expanded}
+                  interactive
+                  onClick={() => toggleExpanded(row.id)}
+                >
                   <DataCell>
                     <ValueBadge>{row.id}</ValueBadge>
                   </DataCell>
@@ -610,12 +606,15 @@ export function CostByTrace() {
                       variant="tonal"
                       label={expanded ? `Collapse ${row.id}` : `Expand ${row.id}`}
                       icon={expanded ? <ChevronUp /> : <ChevronDown />}
-                      onClick={() => toggleExpanded(row.id)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        toggleExpanded(row.id);
+                      }}
                     />
                   </DataCell>
                 </DataRow>
                 {expanded ? (
-                  <ExpandPanel>
+                  <ExpandDetailPanel>
                     <ExpandTitle>
                       <TraceIdLabel>{row.id}</TraceIdLabel>
                       <PromptLabel>“{row.prompt}”</PromptLabel>
@@ -650,10 +649,14 @@ export function CostByTrace() {
                         </HeaderRow>
                       }
                     >
-                      {row.steps.map((step) => {
+                      {row.steps.map((step, stepIndex) => {
                         const stepId = `${row.id}-${step.step}`;
                         return (
-                          <DataRow key={stepId} selectable={false}>
+                          <DataRow
+                            key={stepId}
+                            selectable={false}
+                            stripe={stepIndex % 2 === 0 ? 'default' : 'inverse'}
+                          >
                             <DataCell>
                               <StepValue>{String(step.step)}</StepValue>
                             </DataCell>
@@ -680,7 +683,7 @@ export function CostByTrace() {
                           </DataRow>
                         );
                       })}
-                      <DataRow selectable={false}>
+                      <DataRow selectable={false} stripe="inverse" selected>
                         <DataCell>
                           <TotalLabel>Total</TotalLabel>
                         </DataCell>
@@ -700,9 +703,9 @@ export function CostByTrace() {
                         </DataCell>
                       </DataRow>
                     </ReportTable>
-                  </ExpandPanel>
+                  </ExpandDetailPanel>
                 ) : null}
-              </Fragment>
+              </ExpandableRowGroup>
             );
           })}
         </ReportTable>

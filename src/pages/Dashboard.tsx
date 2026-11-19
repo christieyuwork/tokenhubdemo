@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import styled from 'styled-components';
 import { DailyBarChart } from '../charts/DailyBarChart';
+import { DashboardLabStrip } from '../components/LabAds';
 import {
   brightsky,
   claims,
@@ -300,13 +301,13 @@ const MetricIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   color: var(--color-text-icon-secondary);
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 `;
 
@@ -625,6 +626,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </CompactTableShell>
           </PanelInner>
         </Panel>
+
+        <DashboardLabStrip
+          onWhatIf={go('what-if')}
+          onTestPrompt={go('test-prompt')}
+        />
       </Page>
     </PageScroll>
   );

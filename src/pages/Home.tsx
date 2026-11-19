@@ -20,6 +20,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import styled from 'styled-components';
+import { ExploreLabBanner } from '../components/LabAds';
 import aiEconomicsImg from '../assets/home/ai-economics.jpg';
 import heroImg from '../assets/home/hero.jpg';
 import intelligentRoutingImg from '../assets/home/intelligent-routing.jpg';
@@ -74,12 +75,12 @@ const Page = styled.div`
 
 /*
   Figma Home content is a 7-column bento (1096px). Gaps are 24px.
-  Rows: 250 + 250 (hero/metrics span), 250, 524, 460.
+  Rows: 250 + 250 (hero/metrics), auto lab banner, 250, 524, 460.
 */
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  grid-template-rows: 250px 250px 250px 524px 460px;
+  grid-template-rows: 250px 250px auto 250px 524px 460px;
   gap: var(--space-500);
 
   @container home (max-width: 920px) {
@@ -90,6 +91,17 @@ const Grid = styled.div`
 
   @container home (max-width: 560px) {
     grid-template-columns: 1fr;
+  }
+`;
+
+const LabBannerSlot = styled.div`
+  grid-column: 1 / -1;
+  grid-row: 3;
+  min-width: 0;
+
+  @container home (max-width: 920px) {
+    grid-column: 1 / -1;
+    grid-row: auto;
   }
 `;
 
@@ -280,7 +292,7 @@ const GpuCard = styled(Card)`
   display: flex;
   flex-direction: column;
   grid-column: 1 / span 2;
-  grid-row: 3;
+  grid-row: 4;
   min-height: 0;
 
   @container home (max-width: 920px) {
@@ -377,7 +389,7 @@ const QuickLinksCard = styled(Card)`
   display: flex;
   flex-direction: column;
   grid-column: 3 / span 2;
-  grid-row: 3;
+  grid-row: 4;
   min-height: 0;
 
   @container home (max-width: 920px) {
@@ -467,8 +479,8 @@ const QuickLinkIcon = styled.span`
   color: var(--color-text-icon-primary);
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 `;
 
@@ -476,7 +488,7 @@ const PredictCard = styled(Card)`
   display: flex;
   flex-direction: column;
   grid-column: 5 / span 3;
-  grid-row: 3;
+  grid-row: 4;
   min-height: 0;
 
   @container home (max-width: 920px) {
@@ -584,7 +596,7 @@ const RoutingCard = styled(Card)`
   display: flex;
   flex-direction: column;
   grid-column: 1 / span 5;
-  grid-row: 4;
+  grid-row: 5;
   min-height: 0;
 
   @container home (max-width: 920px) {
@@ -656,7 +668,7 @@ const EconomicsCard = styled(Card)`
   display: flex;
   flex-direction: column;
   grid-column: 6 / span 2;
-  grid-row: 4;
+  grid-row: 5;
   min-height: 0;
   /*
     Same multi-stop indigo underlay as the hero; not available as tokens.
@@ -709,7 +721,7 @@ const FeatureCard = styled(Card)<{ $span: number }>`
   display: flex;
   flex-direction: column;
   grid-column: span ${(p) => p.$span};
-  grid-row: 5;
+  grid-row: 6;
   min-height: 0;
 
   @container home (max-width: 920px) {
@@ -866,6 +878,10 @@ export function Home({ onNavigate }: HomeProps) {
               </Button>
             </MetricsActions>
           </MetricsPanel>
+
+          <LabBannerSlot>
+            <ExploreLabBanner onWhatIf={go('what-if')} />
+          </LabBannerSlot>
 
           <GpuCard role="region" aria-label="GPU fleet efficiency">
             <GpuInner>

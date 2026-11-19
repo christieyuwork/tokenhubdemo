@@ -7,8 +7,8 @@ import {
   HeaderRow,
   IconButton,
 } from '@cake-admin/cakeand';
-import { ArrowDown, ArrowUp } from 'lucide-react';
-import styled from 'styled-components';
+import { ArrowDown, ArrowUp, Sparkles } from 'lucide-react';
+import styled, { keyframes } from 'styled-components';
 import { StackedBarChart, type StackedBarSeries } from '../charts/StackedBarChart';
 import {
   applyPolicyForm,
@@ -16,10 +16,10 @@ import {
   type PolicyFormValues,
 } from '../components/routing/PolicyFormModal';
 import { ConfigSearch } from '../components/config/ConfigPageChrome';
+import { InlineIcon } from '../components/LeadIcon';
 import { PolicyList } from '../components/routing/PolicyList';
 import { PolicySummary } from '../components/routing/PolicySummary';
 import { RecentDecisionsTable } from '../components/routing/RecentDecisionsTable';
-import { TryRequestModal } from '../components/routing/TryRequestModal';
 import { modelBadgeColor } from '../data/modelColors';
 import {
   aggregatePolicyMetrics,
@@ -31,7 +31,6 @@ import {
   POLICY_IMPACT_WEEKLY_TOTALS,
   trafficShareForPolicies,
   type PolicyId,
-  type PromptEvaluation,
   type RoutingPolicy,
 } from '../data/routingDemo';
 import {
@@ -90,7 +89,7 @@ const PolicyPanelActions = styled(PanelActions)`
 `;
 
 const RoutingMetricGrid = styled(MetricGrid)`
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 
   @container report-content (max-width: 900px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -111,6 +110,7 @@ const PulseInner = styled.div`
   flex-direction: column;
   gap: var(--space-050);
   padding: var(--space-300) var(--space-400);
+  height: 100%;
 `;
 
 const PulseLabel = styled.p`
@@ -141,6 +141,92 @@ const PulseCaption = styled.div`
   line-height: 1.35;
 `;
 
+const PromoAction = styled.div`
+  margin-top: auto;
+  padding-top: var(--space-200);
+`;
+
+const promoSheen = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+/**
+ * Matches ReportHeader gradient stops (cake& has no gradient card variant).
+ * Visual CTA among the metric tiles — intentionally louder than PulseCard.
+ */
+const PromoCard = styled(Card)`
+  box-sizing: border-box;
+  min-width: 0;
+  overflow: hidden;
+  background-image: linear-gradient(
+    126deg,
+    rgb(21, 47, 197) 8%,
+    rgb(57, 78, 219) 42%,
+    rgb(160, 120, 255) 92%
+  );
+  background-size: 140% 140%;
+  animation: ${promoSheen} 9s ease-in-out infinite;
+  box-shadow: var(--elevation-2);
+  transition: box-shadow 160ms ease, transform 160ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    background-size: 100% 100%;
+  }
+
+  &:hover {
+    box-shadow: var(--elevation-3);
+    transform: translateY(calc(var(--space-025) * -1));
+  }
+`;
+
+const PromoInner = styled(PulseInner)`
+  position: relative;
+  gap: var(--space-100);
+`;
+
+const PromoEyebrow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--space-100);
+  color: var(--color-text-icon-on-primary);
+  font-size: var(--type-size-caption);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+`;
+
+const PromoTitle = styled.p`
+  margin: 0;
+  color: var(--color-text-icon-on-primary);
+  font-size: var(--type-size-subtitle);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.25;
+`;
+
+const PromoCaption = styled.p`
+  margin: 0;
+  color: var(--color-text-icon-on-primary-disabled);
+  font-size: var(--type-size-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.35;
+`;
+
+const PromoButton = styled(Button)`
+  && {
+    background: var(--color-surfaces-container);
+    color: var(--color-primary-primary);
+    box-shadow: var(--elevation-1);
+  }
+
+  &&:hover {
+    background: var(--color-surfaces-on-container-high);
+  }
+`;
+
 function formatChartLabel(value: number) {
   return `${value.toFixed(2)}M`;
 }
@@ -165,29 +251,64 @@ function PulseMetric({
   );
 }
 
+function PulsePromo({
+  label,
+  title,
+  caption,
+  actionLabel,
+  onAction,
+}: {
+  label: string;
+  title: string;
+  caption: string;
+  actionLabel: string;
+  onAction: () => void;
+}) {
+  return (
+    <PromoCard>
+      <PromoInner>
+        <PromoEyebrow>
+          <InlineIcon>
+            <Sparkles aria-hidden />
+          </InlineIcon>
+          {label}
+        </PromoEyebrow>
+        <PromoTitle>{title}</PromoTitle>
+        <PromoCaption>{caption}</PromoCaption>
+        <PromoAction>
+          <PromoButton
+            type="button"
+            size="sm"
+            intent="primary"
+            startIcon={<Sparkles size={16} aria-hidden />}
+            onClick={onAction}
+          >
+            {actionLabel}
+          </PromoButton>
+        </PromoAction>
+      </PromoInner>
+    </PromoCard>
+  );
+}
+
 export interface IntelligentRoutingProps {
   /** When true, scroll to the policies section after mount (Home / legacy CTAs). */
   focusPolicies?: boolean;
-  /** When true, open Test a Prompt after mount (Explore Optimize CTA). */
-  openTestPrompt?: boolean;
   onNavigate?: (section: string, decisionId?: string) => void;
 }
 
 export function IntelligentRouting({
   focusPolicies = false,
-  openTestPrompt: openTestPromptOnMount = false,
   onNavigate,
 }: IntelligentRoutingProps) {
   const policiesSectionRef = useRef<HTMLDivElement>(null);
   const [policies, setPolicies] = useState<RoutingPolicy[]>(() => listPolicies());
   const [policyFilter, setPolicyFilter] = useState<string>(ALL);
-  /** Policy used for detail, edit, and Test a Prompt. */
+  /** Policy used for detail and edit. */
   const [focusId, setFocusId] = useState<PolicyId>('brightsky-quality');
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [editId, setEditId] = useState<PolicyId | null>(null);
-  const [tryOpen, setTryOpen] = useState(false);
-  const [seedPrompt, setSeedPrompt] = useState<string | undefined>();
   const [createSeed, setCreateSeed] = useState<PolicyFormValues | null>(null);
   const [catalogSortKey, setCatalogSortKey] = useState<CatalogSortKey>('match');
   const [catalogSortDir, setCatalogSortDir] = useState<SortDir>('asc');
@@ -197,12 +318,6 @@ export function IntelligentRouting({
     if (!focusPolicies) return;
     policiesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [focusPolicies]);
-
-  useEffect(() => {
-    if (!openTestPromptOnMount) return;
-    setSeedPrompt(undefined);
-    setTryOpen(true);
-  }, [openTestPromptOnMount]);
 
   const policyOptions = useMemo(
     () => [
@@ -240,8 +355,6 @@ export function IntelligentRouting({
     () => decisionsForPolicies(filterIds).slice(0, 5),
     [filterIds],
   );
-
-  const tryPolicyId = (focused?.id ?? 'brightsky-quality') as PolicyId;
 
   const leadingModel = useMemo(() => {
     const top = POLICY_IMPACT_SERIES.reduce((best, item) =>
@@ -325,12 +438,6 @@ export function IntelligentRouting({
     setFormOpen(true);
   }
 
-  function handleCreateFromTry(values: PolicyFormValues) {
-    setTryOpen(false);
-    setSeedPrompt(undefined);
-    openCreate(values);
-  }
-
   function openEdit(id: string) {
     setFormMode('edit');
     setEditId(id as PolicyId);
@@ -381,25 +488,6 @@ export function IntelligentRouting({
     setPolicyFilter(created.id);
   }
 
-  function openTestPrompt(prompt?: string) {
-    setSeedPrompt(prompt);
-    setTryOpen(true);
-  }
-
-  function handleTryOpenChange(open: boolean) {
-    setTryOpen(open);
-    if (!open) setSeedPrompt(undefined);
-  }
-
-  function syncFocusPolicy(id: PolicyId) {
-    setFocusId(id);
-    if (policyFilter !== ALL) setPolicyFilter(id);
-  }
-
-  function handleEvaluated(result: PromptEvaluation) {
-    syncFocusPolicy(result.policyId);
-  }
-
   const showingAll = policyFilter === ALL;
   const chartNote = showingAll
     ? `Leading share: ${leadingModel.label} (${leadingModel.percent}%).`
@@ -409,7 +497,7 @@ export function IntelligentRouting({
     <>
       <ReportHeader
         title="Intelligent routing"
-        description="Filter by policy to scope health below. Manage constraints in Routing policies, or Test a Prompt from Recent routing decisions."
+        description="Filter by policy to scope health below. Manage constraints in Routing policies, or Test a Prompt to see how a request is evaluated."
         filters={
           <ReportFilterDropdown
             label="Policy"
@@ -450,6 +538,13 @@ export function IntelligentRouting({
           value={metrics.averageSavings}
           caption={metrics.averageSavingsCaption}
         />
+        <PulsePromo
+          label="Try routing"
+          title="Test a Prompt"
+          caption="See how a request is scored and routed."
+          actionLabel="Test a Prompt"
+          onAction={() => onNavigate?.('prompt-lab')}
+        />
       </RoutingMetricGrid>
 
       <ReportPanel title="Where traffic goes" note={chartNote}>
@@ -471,19 +566,14 @@ export function IntelligentRouting({
         title="Recent routing decisions"
         note="Latest five decisions. Expand a row for the routing tree, or View all for search and filters."
         actions={
-          <PanelActions>
-            <HeaderActionButton type="button" onClick={() => openTestPrompt()}>
-              Test a Prompt
-            </HeaderActionButton>
-            <Button
-              type="button"
-              size="sm"
-              intent="primary"
-              onClick={() => onNavigate?.('routing-decisions')}
-            >
-              View all
-            </Button>
-          </PanelActions>
+          <Button
+            type="button"
+            size="sm"
+            intent="primary"
+            onClick={() => onNavigate?.('routing-decisions')}
+          >
+            View all
+          </Button>
         }
       >
         <RecentDecisionsTable
@@ -603,16 +693,6 @@ export function IntelligentRouting({
           if (!next) setCreateSeed(null);
         }}
         onSave={handleSave}
-      />
-
-      <TryRequestModal
-        open={tryOpen}
-        onOpenChange={handleTryOpenChange}
-        policyId={tryPolicyId}
-        seedPrompt={seedPrompt}
-        autoEvaluate={Boolean(seedPrompt)}
-        onEvaluated={handleEvaluated}
-        onCreatePolicy={handleCreateFromTry}
       />
     </>
   );

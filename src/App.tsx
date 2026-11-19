@@ -23,16 +23,17 @@ import { PricingAndRates } from './pages/PricingAndRates';
 import { Quotas } from './pages/Quotas';
 import { ReportPage } from './pages/ReportPage';
 import { IntelligentRouting } from './pages/IntelligentRouting';
+import { PromptLab } from './pages/PromptLab';
 import { RoutingDecisions } from './pages/RoutingDecisions';
 import { AppSidebar } from './shell/AppSidebar';
 import { AppTopBar } from './shell/AppTopBar';
 import { navGroups } from './shell/nav';
 
-/** Legacy Routing / Routing rules ids map onto Intelligent routing. */
+/** Legacy Routing / Routing rules ids map onto Intelligent routing / Prompt lab. */
 function resolveNavigation(next: string): {
   section: string;
   focusPolicies?: boolean;
-  openTestPrompt?: boolean;
+  promptLabMode?: 'test' | 'whatIf';
 } {
   if (next === 'routing' || next === 'intelligent-routing') {
     return { section: 'intelligent-routing' };
@@ -40,8 +41,14 @@ function resolveNavigation(next: string): {
   if (next === 'routing-rules' || next === 'routing-policies') {
     return { section: 'intelligent-routing', focusPolicies: true };
   }
+  if (next === 'what-if') {
+    return { section: 'prompt-lab', promptLabMode: 'whatIf' };
+  }
   if (next === 'test-prompt') {
-    return { section: 'intelligent-routing', openTestPrompt: true };
+    return { section: 'prompt-lab', promptLabMode: 'test' };
+  }
+  if (next === 'prompt-lab') {
+    return { section: 'prompt-lab' };
   }
   return { section: next };
 }
@@ -129,14 +136,14 @@ const Body = styled(SidebarContent)`
 export default function App() {
   const [section, setSection] = useState('home');
   const [focusRoutingPolicies, setFocusRoutingPolicies] = useState(false);
-  const [openRoutingTestPrompt, setOpenRoutingTestPrompt] = useState(false);
   const [focusRoutingDecisionId, setFocusRoutingDecisionId] = useState<string | null>(null);
+  const [promptLabMode, setPromptLabMode] = useState<'test' | 'whatIf' | undefined>();
 
   function navigateTo(next: string, decisionId?: string) {
     const resolved = resolveNavigation(next);
     setFocusRoutingPolicies(Boolean(resolved.focusPolicies));
-    setOpenRoutingTestPrompt(Boolean(resolved.openTestPrompt));
     setFocusRoutingDecisionId(decisionId ?? null);
+    setPromptLabMode(resolved.promptLabMode);
     setSection(resolved.section);
   }
 
@@ -184,9 +191,11 @@ export default function App() {
                     {section === 'intelligent-routing' ? (
                       <IntelligentRouting
                         focusPolicies={focusRoutingPolicies}
-                        openTestPrompt={openRoutingTestPrompt}
                         onNavigate={navigateTo}
                       />
+                    ) : null}
+                    {section === 'prompt-lab' ? (
+                      <PromptLab initialMode={promptLabMode} />
                     ) : null}
                     {section === 'routing-decisions' ? (
                       <RoutingDecisions focusDecisionId={focusRoutingDecisionId} />

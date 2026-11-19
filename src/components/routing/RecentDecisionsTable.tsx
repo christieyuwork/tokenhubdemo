@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, DataRow, HeaderCell, HeaderRow, IconButton } from '@cake-admin/cakeand';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import styled from 'styled-components';
@@ -14,28 +14,14 @@ import {
   CellBadge,
   CompactDataCell,
   CompactTableShell,
+  ExpandableRowGroup,
+  ExpandDetailPanel,
   ReportTable,
   WideDataCell,
   reportCol,
 } from '../../pages/ReportPage';
 import { RouterLaneGraph } from './RouterLaneGraph';
 import { hostingBadgeColor } from './statusBadges';
-
-const ExpandPanel = styled.div<{ $compact?: boolean }>`
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: ${({ $compact }) => ($compact ? 'var(--space-100)' : 'var(--space-150)')};
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  padding: ${({ $compact }) =>
-    $compact
-      ? 'var(--space-150) var(--space-300) var(--space-150) var(--space-700)'
-      : 'var(--space-200) var(--space-300) var(--space-200) var(--space-800)'};
-  border-bottom: var(--stroke-100) solid var(--color-stroke-border-low);
-  background: var(--color-surfaces-container);
-`;
 
 const ExpandTitle = styled.div`
   display: flex;
@@ -184,12 +170,19 @@ export function RecentDecisionsTable({
           </HeaderRow>
         }
       >
-        {rows.map((row) => {
+        {rows.map((row, index) => {
           const expanded = expandedId === row.id;
           const policyName = getPolicy(row.policyId).name;
+          const stripe = index % 2 === 0 ? 'default' : 'inverse';
           return (
-            <Fragment key={row.id}>
-              <DataRow selectable={false}>
+            <ExpandableRowGroup key={row.id} $expanded={expanded}>
+              <DataRow
+                selectable={false}
+                stripe={stripe}
+                selected={expanded}
+                interactive
+                onClick={() => toggleExpanded(row.id)}
+              >
                 {compact ? (
                   <>
                     <CompactDataCell>{row.timestamp}</CompactDataCell>
@@ -256,12 +249,15 @@ export function RecentDecisionsTable({
                         : `Expand routing tree for ${row.workload}`
                     }
                     icon={expanded ? <ChevronUp /> : <ChevronDown />}
-                    onClick={() => toggleExpanded(row.id)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      toggleExpanded(row.id);
+                    }}
                   />
                 </ExpandCell>
               </DataRow>
               {expanded ? (
-                <ExpandPanel $compact={compact}>
+                <ExpandDetailPanel $compact={compact}>
                   <ExpandTitle>
                     <StoryCopy>
                       {row.workload} under {policyName} routed to {row.selectedModel}.
@@ -272,7 +268,10 @@ export function RecentDecisionsTable({
                         size="sm"
                         intent="secondary"
                         variant="outline"
-                        onClick={() => onViewDetails(row)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onViewDetails(row);
+                        }}
                       >
                         View more details
                       </Button>
@@ -285,9 +284,9 @@ export function RecentDecisionsTable({
                       compact
                     />
                   </GraphSlot>
-                </ExpandPanel>
+                </ExpandDetailPanel>
               ) : null}
-            </Fragment>
+            </ExpandableRowGroup>
           );
         })}
       </ReportTable>

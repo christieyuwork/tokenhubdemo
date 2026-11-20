@@ -99,30 +99,35 @@ const Landing = styled.div`
   flex: 1 1 auto;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
-  gap: var(--space-300);
+  justify-content: flex-start;
+  gap: var(--space-500);
   min-height: 0;
-  padding: var(--space-500) var(--space-500) var(--space-600);
+  padding: var(--space-700) var(--space-500) var(--space-700);
   overflow: visible;
 `;
 
 const LandingInner = styled.div`
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: var(--space-300);
+  box-sizing: border-box;
   width: 100%;
-  max-width: 40rem;
+  max-width: 48rem;
   margin: 0 auto;
+  padding-block: var(--space-200);
 `;
 
 const ComposerZone = styled.section`
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: var(--space-100);
+  box-sizing: border-box;
   width: 100%;
-  max-width: 36rem;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
 `;
 
 const ComposerShell = styled.div<{ $focused?: boolean }>`
@@ -180,6 +185,7 @@ const Suggestions = styled.div`
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-100);
   width: 100%;
+  max-width: 100%;
 
   @media (max-width: 40rem) {
     grid-template-columns: 1fr;

@@ -73,7 +73,7 @@ const Root = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: row;
-  align-items: stretch;
+  align-items: flex-start;
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
@@ -88,9 +88,8 @@ const Main = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  align-self: stretch;
   min-width: 0;
-  min-height: 100%;
+  min-height: calc(100dvh - 8rem);
   overflow: visible;
 `;
 

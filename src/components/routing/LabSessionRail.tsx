@@ -25,9 +25,11 @@ interface LabSessionRailProps {
 }
 
 const SideRail = styled.aside`
+  /* Stick in the page scrollport; viewport height keeps gray filled without
+     stretching with Main (which breaks sticky). */
   position: sticky;
   top: 0;
-  align-self: stretch;
+  align-self: flex-start;
   z-index: 1;
   display: flex;
   flex: 0 0 15rem;
@@ -37,8 +39,8 @@ const SideRail = styled.aside`
   width: 15rem;
   min-width: 15rem;
   max-width: 15rem;
-  min-height: 100%;
-  height: auto;
+  height: calc(100dvh - 8rem);
+  max-height: calc(100dvh - 8rem);
   padding: var(--space-150);
   border-right: var(--stroke-100) solid var(--color-stroke-border-low);
   background: var(--color-surfaces-on-container-high);

@@ -39,39 +39,57 @@ const JudgementMenuStyles = createGlobalStyle`
 const Strip = styled.section`
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-150);
+  align-items: start;
+  justify-content: start;
+  gap: var(--space-100);
   flex-shrink: 0;
+  box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
 
-  @media (max-width: 56rem) {
+  @media (max-width: 48rem) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   @media (max-width: 32rem) {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 `;
 
 const Field = styled.div`
+  box-sizing: border-box;
+  width: 100%;
   min-width: 0;
 
   & > * {
+    width: 100%;
     max-width: 100%;
   }
 
-  /* cake& Dropdown centers the value by default — left-align for long judgement labels. */
+  /* Equal-width triggers; long labels truncate with ellipsis. */
   & [role='combobox'] {
+    box-sizing: border-box;
     align-items: center;
     justify-content: flex-start;
+    gap: var(--space-050);
+    width: 100%;
+    min-width: 0;
+    min-height: var(--space-700);
+    height: var(--space-700);
+    padding-inline: var(--space-100) var(--space-075);
+    overflow: hidden;
     text-align: left;
   }
 
   & [role='combobox'] > span:first-child {
     flex: 1 1 auto;
     min-width: 0;
+    overflow: hidden;
     text-align: left;
-    white-space: normal;
-    overflow-wrap: anywhere;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--type-size-helper);
+    line-height: 1.3;
   }
 
   & [role='combobox'] > span:last-child {

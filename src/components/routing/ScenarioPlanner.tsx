@@ -73,12 +73,12 @@ const Root = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: row;
+  align-items: stretch;
   box-sizing: border-box;
   width: 100%;
-  height: 100%;
   min-width: 0;
-  min-height: 0;
-  overflow: hidden;
+  min-height: calc(100dvh - 8rem);
+  overflow: visible;
   border: var(--stroke-100) solid var(--color-stroke-border-low);
   border-radius: var(--radius-200);
   background: var(--color-surfaces-container);
@@ -88,9 +88,10 @@ const Main = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+  align-self: stretch;
   min-width: 0;
-  min-height: 0;
-  overflow: hidden;
+  min-height: 100%;
+  overflow: visible;
 `;
 
 const Landing = styled.div`
@@ -102,7 +103,7 @@ const Landing = styled.div`
   gap: var(--space-300);
   min-height: 0;
   padding: var(--space-500) var(--space-500) var(--space-600);
-  overflow: auto;
+  overflow: visible;
 `;
 
 const LandingInner = styled.div`
@@ -247,8 +248,9 @@ const SessionShell = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
+  box-sizing: border-box;
+  min-height: 100%;
+  overflow: visible;
 `;
 
 const Messages = styled.div`
@@ -261,9 +263,8 @@ const Messages = styled.div`
   max-width: 44rem;
   min-height: 0;
   margin: 0 auto;
-  padding: var(--space-250) var(--space-300);
-  overflow-x: hidden;
-  overflow-y: auto;
+  padding: var(--space-250) var(--space-300) var(--space-200);
+  overflow: visible;
 `;
 
 const Bubble = styled.div<{ $role: 'user' | 'assistant' }>`
@@ -325,6 +326,19 @@ const PromptSnippet = styled.p`
   line-height: 1.35;
 `;
 
+const StickyChatFooter = styled.div`
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  width: 100%;
+  margin-top: auto;
+  border-top: var(--stroke-100) solid var(--color-stroke-border-low);
+  background: var(--color-surfaces-container);
+`;
+
 const FollowUps = styled.div`
   display: flex;
   flex-shrink: 0;
@@ -334,7 +348,6 @@ const FollowUps = styled.div`
   max-width: 44rem;
   margin: 0 auto;
   padding: var(--space-150) var(--space-300) var(--space-100);
-  border-top: var(--stroke-100) solid var(--color-stroke-border-low);
 `;
 
 const FollowUpChip = styled.button`
@@ -370,8 +383,7 @@ const ComposerBar = styled.div`
   width: 100%;
   max-width: 44rem;
   margin: 0 auto;
-  padding: var(--space-150) var(--space-300) var(--space-250);
-  border-top: var(--stroke-100) solid var(--color-stroke-border-low);
+  padding: var(--space-100) var(--space-300) var(--space-250);
   background: var(--color-surfaces-container);
 `;
 
@@ -602,7 +614,7 @@ export function ScenarioPlanner({
   );
 
   const chat = activeSession ? (
-    <SessionShell>
+    <SessionShell data-lab-session="true">
       <Messages aria-live="polite">
         {activeSession.messages.map((message) => {
           if (message.role === 'user') {
@@ -638,59 +650,61 @@ export function ScenarioPlanner({
         <div ref={messagesEndRef} />
       </Messages>
 
-      <FollowUps aria-label="Follow-up suggestions">
-        {FOLLOW_UP_CHIPS.map((chip) => (
-          <FollowUpChip
-            key={chip.id}
-            type="button"
-            onClick={() => sendMessage(chip.message, chip.id)}
-          >
-            {chip.title}
-          </FollowUpChip>
-        ))}
-      </FollowUps>
+      <StickyChatFooter>
+        <FollowUps aria-label="Follow-up suggestions">
+          {FOLLOW_UP_CHIPS.map((chip) => (
+            <FollowUpChip
+              key={chip.id}
+              type="button"
+              onClick={() => sendMessage(chip.message, chip.id)}
+            >
+              {chip.title}
+            </FollowUpChip>
+          ))}
+        </FollowUps>
 
-      <ComposerBar>
-        <SessionComposer $focused={focused}>
-          <PromptArea
-            ref={sessionAreaRef}
-            value={draft}
-            rows={1}
-            onChange={(event) => {
-              setDraft(event.target.value);
-              setSelectedId(null);
-            }}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            onKeyDown={onPromptKeyDown}
-            placeholder="Ask a follow-up…"
-            aria-label="Follow-up"
-          />
-          <ComposerControls>
-            {draft ? (
+        <ComposerBar>
+          <SessionComposer $focused={focused}>
+            <PromptArea
+              ref={sessionAreaRef}
+              value={draft}
+              rows={1}
+              onChange={(event) => {
+                setDraft(event.target.value);
+                setSelectedId(null);
+              }}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              onKeyDown={onPromptKeyDown}
+              placeholder="Ask a follow-up…"
+              aria-label="Follow-up"
+            />
+            <ComposerControls>
+              {draft ? (
+                <IconButton
+                  label="Clear message"
+                  icon={<X aria-hidden />}
+                  intent="secondary"
+                  variant="ghost"
+                  size="sm"
+                  type="button"
+                  onClick={clearDraft}
+                />
+              ) : null}
               <IconButton
-                label="Clear message"
-                icon={<X aria-hidden />}
-                intent="secondary"
-                variant="ghost"
+                label="Send"
+                icon={<ArrowUp aria-hidden />}
+                intent="primary"
+                variant="fill"
                 size="sm"
                 type="button"
-                onClick={clearDraft}
+                disabled={!canSubmit}
+                onClick={() => sendMessage(draft, selectedId)}
               />
-            ) : null}
-            <IconButton
-              label="Send"
-              icon={<ArrowUp aria-hidden />}
-              intent="primary"
-              variant="fill"
-              size="sm"
-              type="button"
-              disabled={!canSubmit}
-              onClick={() => sendMessage(draft, selectedId)}
-            />
-          </ComposerControls>
-        </SessionComposer>
-      </ComposerBar>
+            </ComposerControls>
+          </SessionComposer>
+        </ComposerBar>
+      </StickyChatFooter>
     </SessionShell>
   ) : null;
 

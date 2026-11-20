@@ -25,19 +25,30 @@ interface LabSessionRailProps {
 }
 
 const SideRail = styled.aside`
+  position: sticky;
+  top: 0;
+  align-self: stretch;
+  z-index: 1;
   display: flex;
   flex: 0 0 15rem;
   flex-direction: column;
   gap: var(--space-100);
   box-sizing: border-box;
-  min-width: 0;
-  min-height: 0;
+  width: 15rem;
+  min-width: 15rem;
+  max-width: 15rem;
+  min-height: 100%;
+  height: auto;
   padding: var(--space-150);
   border-right: var(--stroke-100) solid var(--color-stroke-border-low);
   background: var(--color-surfaces-on-container-high);
+  overflow: hidden;
 
   @media (max-width: 48rem) {
     flex-basis: 12rem;
+    width: 12rem;
+    min-width: 12rem;
+    max-width: 12rem;
   }
 `;
 
@@ -71,20 +82,26 @@ const SessionList = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
   gap: var(--space-050);
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 `;
 
 const SessionRow = styled.button<{ $active?: boolean }>`
   display: flex;
-  flex-shrink: 0;
+  flex: 0 0 auto;
   align-items: center;
   gap: var(--space-075);
   box-sizing: border-box;
   width: 100%;
+  height: var(--space-700);
+  min-height: var(--space-700);
+  max-height: var(--space-700);
   margin: 0;
-  padding: var(--space-075) var(--space-100);
+  padding: 0 var(--space-100);
   border: none;
   border-radius: var(--radius-150);
   background: ${({ $active }) =>
@@ -93,6 +110,7 @@ const SessionRow = styled.button<{ $active?: boolean }>`
   font: inherit;
   text-align: left;
   cursor: pointer;
+  overflow: hidden;
 
   &:hover {
     background: ${({ $active }) =>

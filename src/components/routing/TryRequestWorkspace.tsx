@@ -54,12 +54,12 @@ const Root = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: row;
+  align-items: stretch;
   box-sizing: border-box;
   width: 100%;
-  height: 100%;
   min-width: 0;
-  min-height: 0;
-  overflow: hidden;
+  min-height: 100%;
+  overflow: visible;
   border: var(--stroke-100) solid var(--color-stroke-border-low);
   border-radius: var(--radius-200);
   background: var(--color-surfaces-container);
@@ -69,8 +69,10 @@ const Main = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+  align-self: stretch;
   min-width: 0;
-  min-height: 0;
+  min-height: 100%;
+  overflow: visible;
 `;
 
 const Landing = styled.div`
@@ -78,21 +80,44 @@ const Landing = styled.div`
   flex: 1 1 auto;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
-  gap: var(--space-300);
+  justify-content: flex-start;
+  gap: var(--space-500);
   min-height: 0;
-  padding: var(--space-500) var(--space-500) var(--space-600);
-  overflow: auto;
+  padding: var(--space-700) var(--space-500) var(--space-700);
+  overflow: visible;
 `;
 
 const LandingInner = styled.div`
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: var(--space-300);
+  box-sizing: border-box;
   width: 100%;
-  max-width: 40rem;
+  max-width: 48rem;
   margin: 0 auto;
+  padding-block: var(--space-200);
+`;
+
+/** Idle route preview — same width as the composer / suggestion block above. */
+const LandingPreview = styled.div`
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 48rem;
+  min-width: 0;
+  min-height: 0;
+  margin: 0 auto;
+  padding: var(--space-200) var(--space-250);
+  overflow: hidden;
+  border: var(--stroke-100) solid var(--color-stroke-border-low);
+  border-radius: var(--radius-200);
+  background: var(--color-surfaces-canvas);
 `;
 
 const SessionShell = styled.div`
@@ -100,13 +125,14 @@ const SessionShell = styled.div`
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
+  overflow: visible;
 `;
 
 const PinnedPrompt = styled.div`
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
-  gap: var(--space-050);
+  gap: var(--space-100);
   padding: var(--space-100) var(--space-300);
   border-bottom: var(--stroke-100) solid var(--color-stroke-border-low);
   background: var(--color-surfaces-on-container-high);
@@ -115,13 +141,23 @@ const PinnedPrompt = styled.div`
 const PinnedPromptHeader = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-200);
   min-width: 0;
 `;
 
+const PinnedPromptRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-100) var(--space-150);
+  width: 100%;
+  min-width: 0;
+`;
+
 const PinnedPromptText = styled.p`
+  flex: 1 1 18rem;
   margin: 0;
+  min-width: 0;
   color: var(--color-text-icon-primary);
   font-size: var(--type-size-body);
   font-weight: var(--font-weight-medium);
@@ -135,7 +171,7 @@ const Transcript = styled.div`
   flex-direction: column;
   min-height: 0;
   padding: var(--space-250) var(--space-300) var(--space-200);
-  overflow: auto;
+  overflow: visible;
 `;
 
 const ResultCard = styled.section`
@@ -145,9 +181,10 @@ const ResultCard = styled.section`
   gap: var(--space-250);
   min-width: 0;
   min-height: 0;
+  overflow: visible;
 `;
 
-/** Route map takes remaining height; scores + insights stay below with room to breathe. */
+/** Route map + scores + insights flow with the page — no inner chat scrollbar. */
 const OutcomeSplit = styled.div`
   display: flex;
   flex: 1 1 auto;
@@ -155,6 +192,7 @@ const OutcomeSplit = styled.div`
   gap: var(--space-250);
   min-width: 0;
   min-height: 0;
+  overflow: visible;
 `;
 
 const AdvancedChevron = styled(ChevronDown)<{ $open?: boolean }>`
@@ -169,9 +207,13 @@ const AdvancedBody = styled.div`
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
+  align-items: stretch;
   gap: var(--space-100);
+  box-sizing: border-box;
   min-width: 0;
-  padding-top: var(--space-150);
+  width: 100%;
+  max-width: 100%;
+  padding-top: var(--space-050);
 `;
 
 const SectionLabel = styled.h3`
@@ -184,16 +226,18 @@ const SectionLabel = styled.h3`
   letter-spacing: 0.02em;
 `;
 
+/** Evaluated route map — modest floor, still content-sized. */
 const GraphSlot = styled.div`
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  justify-content: flex-start;
   box-sizing: border-box;
+  width: 100%;
   min-width: 0;
-  min-height: 23rem;
-  padding: var(--space-250);
+  min-height: 0;
+  padding: var(--space-200) var(--space-250);
   overflow: hidden;
   border: var(--stroke-100) solid var(--color-stroke-border-low);
   border-radius: var(--radius-200);
@@ -232,18 +276,53 @@ const SessionFooter = styled.div`
 const ComposerZone = styled.section`
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: var(--space-100);
+  box-sizing: border-box;
   width: 100%;
-  max-width: 36rem;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+`;
+
+const ComposerRow = styled.div`
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: var(--space-100) var(--space-150);
+  width: 100%;
+  min-width: 0;
+
+  @media (max-width: 40rem) {
+    flex-wrap: wrap;
+  }
+`;
+
+const ComposerMain = styled.div`
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-100);
+  min-width: 0;
+`;
+
+const AdvancedAside = styled.div`
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  padding-top: var(--space-100);
 `;
 
 const ComposerShell = styled.div<{ $focused?: boolean }>`
   display: flex;
+  flex: 1 1 auto;
   align-items: flex-end;
   gap: var(--space-100);
   box-sizing: border-box;
   width: 100%;
+  min-width: 0;
   padding: var(--space-100) var(--space-100) var(--space-100) var(--space-200);
   border: var(--stroke-100) solid
     ${({ $focused }) =>
@@ -293,6 +372,7 @@ const Suggestions = styled.div`
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-100);
   width: 100%;
+  max-width: 100%;
 
   @media (max-width: 40rem) {
     grid-template-columns: 1fr;
@@ -393,6 +473,9 @@ export function TryRequestWorkspace({
   const [composing, setComposing] = useState(true);
   const [focused, setFocused] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  /** Judgement applied to custom / landing prompts before a session exists. */
+  const [composerJudgement, setComposerJudgement] =
+    useState<TryJudgement>(DEFAULT_TRY_JUDGEMENT);
 
   const activeSession = sessions.find((session) => session.id === activeId) ?? null;
   const showLanding = composing || sessions.length === 0;
@@ -483,8 +566,7 @@ export function TryRequestWorkspace({
   }
 
   function pickSuggestion(item: PromptLibraryItem) {
-    const judgement = activeSession?.judgement ?? DEFAULT_TRY_JUDGEMENT;
-    appendSession(item.prompt, item.id, judgement);
+    appendSession(item.prompt, item.id, composerJudgement);
   }
 
   function clearDraft() {
@@ -494,8 +576,7 @@ export function TryRequestWorkspace({
   }
 
   function runEvaluation() {
-    const judgement = activeSession?.judgement ?? DEFAULT_TRY_JUDGEMENT;
-    appendSession(draft, selectedLibraryId, judgement);
+    appendSession(draft, selectedLibraryId, composerJudgement);
   }
 
   function onPromptKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
@@ -589,46 +670,72 @@ export function TryRequestWorkspace({
             <LandingInner>
               {sessions.length === 0 ? splash : null}
               <ComposerZone aria-label="Request composer">
-                <ComposerShell $focused={focused}>
-                  <PromptArea
-                    ref={areaRef}
-                    id={promptId}
-                    value={draft}
-                    rows={1}
-                    onChange={(event) => {
-                      setDraft(event.target.value);
-                      setSelectedLibraryId(null);
-                    }}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    onKeyDown={onPromptKeyDown}
-                    placeholder="Ask anything to route…"
-                    aria-label="Prompt"
-                  />
-                  <ComposerControls>
-                    {draft ? (
-                      <IconButton
-                        label="Clear prompt"
-                        icon={<X aria-hidden />}
-                        intent="secondary"
-                        variant="ghost"
-                        size="sm"
-                        type="button"
-                        onClick={clearDraft}
+                <ComposerRow>
+                  <ComposerMain>
+                    <ComposerShell $focused={focused}>
+                      <PromptArea
+                        ref={areaRef}
+                        id={promptId}
+                        value={draft}
+                        rows={1}
+                        onChange={(event) => {
+                          setDraft(event.target.value);
+                          setSelectedLibraryId(null);
+                        }}
+                        onFocus={() => setFocused(true)}
+                        onBlur={() => setFocused(false)}
+                        onKeyDown={onPromptKeyDown}
+                        placeholder="Ask anything to route…"
+                        aria-label="Prompt"
                       />
-                    ) : null}
-                    <IconButton
-                      label="Test a Prompt"
-                      icon={<ArrowUp aria-hidden />}
-                      intent="primary"
-                      variant="fill"
-                      size="sm"
+                      <ComposerControls>
+                        {draft ? (
+                          <IconButton
+                            label="Clear prompt"
+                            icon={<X aria-hidden />}
+                            intent="secondary"
+                            variant="ghost"
+                            size="sm"
+                            type="button"
+                            onClick={clearDraft}
+                          />
+                        ) : null}
+                        <IconButton
+                          label="Test a Prompt"
+                          icon={<ArrowUp aria-hidden />}
+                          intent="primary"
+                          variant="fill"
+                          size="sm"
+                          type="button"
+                          disabled={!canSubmit}
+                          onClick={runEvaluation}
+                        />
+                      </ComposerControls>
+                    </ComposerShell>
+                  </ComposerMain>
+                  <AdvancedAside>
+                    <Button
                       type="button"
-                      disabled={!canSubmit}
-                      onClick={runEvaluation}
+                      size="sm"
+                      intent="secondary"
+                      variant="ghost"
+                      endIcon={<AdvancedChevron $open={advancedOpen} aria-hidden />}
+                      aria-expanded={advancedOpen}
+                      aria-controls={`${promptId}-advanced`}
+                      onClick={() => setAdvancedOpen((open) => !open)}
+                    >
+                      Advanced settings
+                    </Button>
+                  </AdvancedAside>
+                </ComposerRow>
+                {advancedOpen ? (
+                  <AdvancedBody id={`${promptId}-advanced`}>
+                    <JudgementControls
+                      value={composerJudgement}
+                      onChange={setComposerJudgement}
                     />
-                  </ComposerControls>
-                </ComposerShell>
+                  </AdvancedBody>
+                ) : null}
               </ComposerZone>
 
               <Suggestions aria-label="Suggested prompts">
@@ -651,30 +758,46 @@ export function TryRequestWorkspace({
                   : 'Pick a suggestion, or type your own request.'}
               </Status>
             </LandingInner>
+
+            <LandingPreview aria-label="Route map preview">
+              <RouterLaneGraph
+                policyId={policyId}
+                evaluation={null}
+                prompt={draft}
+                compact
+              />
+            </LandingPreview>
           </Landing>
         ) : activeSession ? (
           <SessionShell>
             <PinnedPrompt>
               <PinnedPromptHeader>
                 <SectionLabel>Prompt</SectionLabel>
-                <Button
-                  type="button"
-                  size="sm"
-                  intent="secondary"
-                  variant="ghost"
-                  endIcon={<AdvancedChevron $open={advancedOpen} aria-hidden />}
-                  aria-expanded={advancedOpen}
-                  onClick={() => setAdvancedOpen((open) => !open)}
-                >
-                  Advanced settings
-                </Button>
               </PinnedPromptHeader>
-              <PinnedPromptText>{activeSession.prompt}</PinnedPromptText>
+              <PinnedPromptRow>
+                <PinnedPromptText>{activeSession.prompt}</PinnedPromptText>
+                <AdvancedAside>
+                  <Button
+                    type="button"
+                    size="sm"
+                    intent="secondary"
+                    variant="ghost"
+                    endIcon={<AdvancedChevron $open={advancedOpen} aria-hidden />}
+                    aria-expanded={advancedOpen}
+                    aria-controls={`${promptId}-session-advanced`}
+                    onClick={() => setAdvancedOpen((open) => !open)}
+                  >
+                    Advanced settings
+                  </Button>
+                </AdvancedAside>
+              </PinnedPromptRow>
               {advancedOpen ? (
-                <AdvancedBody>
+                <AdvancedBody id={`${promptId}-session-advanced`}>
                   <JudgementControls
                     value={activeSession.judgement}
-                    onChange={(next) => onJudgementChange(activeSession.id, next)}
+                    onChange={(next) =>
+                      onJudgementChange(activeSession.id, next)
+                    }
                   />
                 </AdvancedBody>
               ) : null}
@@ -694,11 +817,11 @@ export function TryRequestWorkspace({
                     {activeSession.evaluation.statusMessage}
                   </RouteStatus>
 
-                  {insights ? <LabAiInsights insights={insights} /> : null}
-
                   <ScoresPanel aria-label="Selected route scores">
                     <PriorityControls evaluation={activeSession.evaluation} />
                   </ScoresPanel>
+
+                  {insights ? <LabAiInsights insights={insights} /> : null}
                 </OutcomeSplit>
               </ResultCard>
             </Transcript>

@@ -218,21 +218,19 @@ const TabsContent = styled(HorizontalTabsContent)`
   }
 `;
 
-/** Fixed frame — chat labs scroll inside so mode switches don't jump the page. */
+/** Fills the lab frame; content can grow taller. Page scroll owns the scrollbar. */
 const ChatPanel = styled.div`
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   min-width: 0;
-  height: ${LAB_PANEL_MIN_HEIGHT};
   min-height: ${LAB_PANEL_MIN_HEIGHT};
-  max-height: ${LAB_PANEL_MIN_HEIGHT};
-  overflow: hidden;
+  overflow: visible;
 
   & > * {
     flex: 1 1 auto;
-    min-height: 0;
-    height: 100%;
+    min-height: ${LAB_PANEL_MIN_HEIGHT};
+    height: auto;
   }
 `;
 

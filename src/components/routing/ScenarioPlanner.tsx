@@ -402,7 +402,6 @@ export function ScenarioPlanner({
   const promptId = useId();
   const areaRef = useRef<HTMLTextAreaElement>(null);
   const sessionAreaRef = useRef<HTMLTextAreaElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState('');
   const [focused, setFocused] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -412,7 +411,6 @@ export function ScenarioPlanner({
 
   const activeSession = sessions.find((session) => session.id === activeId) ?? null;
   const showLanding = composing || sessions.length === 0;
-  const messages = activeSession?.messages ?? [];
 
   useEffect(() => {
     if (!showLanding) return;
@@ -426,11 +424,6 @@ export function ScenarioPlanner({
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   }, [draft, showLanding]);
-
-  useEffect(() => {
-    if (showLanding) return;
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, [messages, showLanding, activeId]);
 
   function sendMessage(text: string, suggestionId?: string | null) {
     const trimmed = text.trim();
@@ -647,7 +640,6 @@ export function ScenarioPlanner({
             </AssistantBlock>
           );
         })}
-        <div ref={messagesEndRef} />
       </Messages>
 
       <StickyChatFooter>
